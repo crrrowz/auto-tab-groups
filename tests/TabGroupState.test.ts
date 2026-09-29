@@ -49,6 +49,9 @@ describe("TabGroupState", () => {
     it("should update groupByMode", () => {
       tabGroupState.updateFromStorage({ groupByMode: "subdomain" })
       expect(tabGroupState.groupByMode).toBe("subdomain")
+
+      tabGroupState.updateFromStorage({ groupByMode: "ai" })
+      expect(tabGroupState.groupByMode).toBe("ai")
     })
 
     it("should update ruleMatchingMode", () => {

@@ -38,7 +38,8 @@ export default defineConfig({
       description: "__MSG_extensionDescription__",
       default_locale: "en",
       author: "Hassanein Hassan Alkahafji",
-      permissions: ["tabs", "storage", "tabGroups", "contextMenus"],
+      permissions: ["tabs", "storage", "tabGroups", "contextMenus", "scripting"],
+      host_permissions: ["<all_urls>"],
       // No suggested_key anywhere on purpose: the browser then binds nothing on
       // install and these sit unassigned in its shortcuts page until the user
       // picks keys. Opting in is the user's move, and no existing shortcut of

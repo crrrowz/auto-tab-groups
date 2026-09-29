@@ -69,6 +69,10 @@
     "message": "Regeln & Subdomain",
     "description": "Option that groups by rules plus subdomain (popup)."
   },
+  "settingGroupByRulesAndAi": {
+    "message": "Regeln & KI",
+    "description": "Option that groups by rules plus AI / semantic analysis (popup)."
+  },
   "settingGroupByDomain": {
     "message": "Domain",
     "description": "Option that groups by base domain (sidebar)."
@@ -76,6 +80,10 @@
   "settingGroupBySubdomain": {
     "message": "Subdomain",
     "description": "Option that groups by subdomain (sidebar)."
+  },
+  "settingGroupByAi": {
+    "message": "KI / Semantisch",
+    "description": "Option that groups tabs semantically using AI / purpose analysis."
   },
   "settingSystemGroupEnabled": {
     "message": "Browserseiten unter „System“ gruppieren",
@@ -342,6 +350,14 @@
   "aiDismiss": {
     "message": "Verwerfen",
     "description": "Button that dismisses AI suggestions."
+  },
+  "aiApplyAll": {
+    "message": "Alle anwenden",
+    "description": "Button that applies all AI suggestions."
+  },
+  "aiApplyingAll": {
+    "message": "Alle werden angewendet …",
+    "description": "Button label while applying all suggestions."
   },
   "aiApply": {
     "message": "Anwenden",

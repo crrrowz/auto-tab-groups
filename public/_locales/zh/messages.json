@@ -69,6 +69,10 @@
     "message": "规则和子域名",
     "description": "Option that groups by rules plus subdomain (popup)."
   },
+  "settingGroupByRulesAndAi": {
+    "message": "规则与AI",
+    "description": "Option that groups by rules plus AI / semantic analysis (popup)."
+  },
   "settingGroupByDomain": {
     "message": "域名",
     "description": "Option that groups by base domain (sidebar)."
@@ -76,6 +80,10 @@
   "settingGroupBySubdomain": {
     "message": "子域名",
     "description": "Option that groups by subdomain (sidebar)."
+  },
+  "settingGroupByAi": {
+    "message": "AI / 语义分析",
+    "description": "Option that groups tabs semantically using AI / purpose analysis."
   },
   "settingSystemGroupEnabled": {
     "message": "将浏览器页面归入“System”",
@@ -342,6 +350,14 @@
   "aiDismiss": {
     "message": "忽略",
     "description": "Button that dismisses AI suggestions."
+  },
+  "aiApplyAll": {
+    "message": "应用全部",
+    "description": "Button that applies all AI suggestions."
+  },
+  "aiApplyingAll": {
+    "message": "全部应用中...",
+    "description": "Button label while applying all suggestions."
   },
   "aiApply": {
     "message": "应用",

@@ -141,6 +141,35 @@ export const laterGroupLeaderTabId = storage.defineItem<number | null>(
   { fallback: DEFAULT_STATE.laterGroupLeaderTabId }
 )
 
+export const tabDiscardEnabled = storage.defineItem<boolean>("local:tabDiscardEnabled", {
+  fallback: DEFAULT_STATE.tabDiscardEnabled
+})
+
+export const tabDiscardInactivityMinutes = storage.defineItem<number>(
+  "local:tabDiscardInactivityMinutes",
+  { fallback: DEFAULT_STATE.tabDiscardInactivityMinutes }
+)
+
+export const tabDiscardExcludedDomains = storage.defineItem<string[]>(
+  "local:tabDiscardExcludedDomains",
+  { fallback: DEFAULT_STATE.tabDiscardExcludedDomains }
+)
+
+export const tabDiscardProtectProtectedGroups = storage.defineItem<boolean>(
+  "local:tabDiscardProtectProtectedGroups",
+  { fallback: DEFAULT_STATE.tabDiscardProtectProtectedGroups }
+)
+
+export const tabDiscardMinTabCount = storage.defineItem<number>(
+  "local:tabDiscardMinTabCount",
+  { fallback: DEFAULT_STATE.tabDiscardMinTabCount }
+)
+
+export const tabDiscardShowWakeNotice = storage.defineItem<boolean>(
+  "local:tabDiscardShowWakeNotice",
+  { fallback: DEFAULT_STATE.tabDiscardShowWakeNotice }
+)
+
 /**
  * Transient state for interactive tab comparison session
  */
@@ -210,7 +239,13 @@ export async function loadAllStorage(): Promise<StorageSchema> {
     aiCustomModelValue,
     laterGroupNameValue,
     lockLaterGroupFirstTabValue,
-    laterGroupLeaderTabIdValue
+    laterGroupLeaderTabIdValue,
+    tabDiscardEnabledValue,
+    tabDiscardInactivityMinutesValue,
+    tabDiscardExcludedDomainsValue,
+    tabDiscardProtectProtectedGroupsValue,
+    tabDiscardMinTabCountValue,
+    tabDiscardShowWakeNoticeValue
   ] = await Promise.all([
     autoGroupingEnabled.getValue(),
     groupNewTabs.getValue(),
@@ -240,7 +275,13 @@ export async function loadAllStorage(): Promise<StorageSchema> {
     aiCustomModel.getValue(),
     laterGroupName.getValue(),
     lockLaterGroupFirstTab.getValue(),
-    laterGroupLeaderTabId.getValue()
+    laterGroupLeaderTabId.getValue(),
+    tabDiscardEnabled.getValue(),
+    tabDiscardInactivityMinutes.getValue(),
+    tabDiscardExcludedDomains.getValue(),
+    tabDiscardProtectProtectedGroups.getValue(),
+    tabDiscardMinTabCount.getValue(),
+    tabDiscardShowWakeNotice.getValue()
   ])
 
   return {
@@ -272,7 +313,13 @@ export async function loadAllStorage(): Promise<StorageSchema> {
     aiCustomModel: aiCustomModelValue,
     laterGroupName: laterGroupNameValue,
     lockLaterGroupFirstTab: lockLaterGroupFirstTabValue,
-    laterGroupLeaderTabId: laterGroupLeaderTabIdValue
+    laterGroupLeaderTabId: laterGroupLeaderTabIdValue,
+    tabDiscardEnabled: tabDiscardEnabledValue,
+    tabDiscardInactivityMinutes: tabDiscardInactivityMinutesValue,
+    tabDiscardExcludedDomains: tabDiscardExcludedDomainsValue,
+    tabDiscardProtectProtectedGroups: tabDiscardProtectProtectedGroupsValue,
+    tabDiscardMinTabCount: tabDiscardMinTabCountValue,
+    tabDiscardShowWakeNotice: tabDiscardShowWakeNoticeValue
   }
 }
 
@@ -368,6 +415,24 @@ export async function saveAllStorage(data: Partial<StorageSchema>): Promise<void
   }
   if (data.laterGroupLeaderTabId !== undefined) {
     promises.push(laterGroupLeaderTabId.setValue(data.laterGroupLeaderTabId))
+  }
+  if (data.tabDiscardEnabled !== undefined) {
+    promises.push(tabDiscardEnabled.setValue(data.tabDiscardEnabled))
+  }
+  if (data.tabDiscardInactivityMinutes !== undefined) {
+    promises.push(tabDiscardInactivityMinutes.setValue(data.tabDiscardInactivityMinutes))
+  }
+  if (data.tabDiscardExcludedDomains !== undefined) {
+    promises.push(tabDiscardExcludedDomains.setValue(data.tabDiscardExcludedDomains))
+  }
+  if (data.tabDiscardProtectProtectedGroups !== undefined) {
+    promises.push(tabDiscardProtectProtectedGroups.setValue(data.tabDiscardProtectProtectedGroups))
+  }
+  if (data.tabDiscardMinTabCount !== undefined) {
+    promises.push(tabDiscardMinTabCount.setValue(data.tabDiscardMinTabCount))
+  }
+  if (data.tabDiscardShowWakeNotice !== undefined) {
+    promises.push(tabDiscardShowWakeNotice.setValue(data.tabDiscardShowWakeNotice))
   }
   await Promise.all(promises)
 }

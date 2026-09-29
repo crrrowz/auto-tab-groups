@@ -69,6 +69,10 @@
     "message": "القواعد والنطاق الفرعي",
     "description": "Option that groups by rules plus subdomain (popup)."
   },
+  "settingGroupByRulesAndAi": {
+    "message": "القواعد والذكاء الاصطناعي",
+    "description": "Option that groups by rules plus AI / semantic analysis (popup)."
+  },
   "settingGroupByDomain": {
     "message": "النطاق",
     "description": "Option that groups by base domain (sidebar)."
@@ -76,6 +80,10 @@
   "settingGroupBySubdomain": {
     "message": "النطاق الفرعي",
     "description": "Option that groups by subdomain (sidebar)."
+  },
+  "settingGroupByAi": {
+    "message": "الذكاء الاصطناعي",
+    "description": "Option that groups tabs semantically using AI / purpose analysis."
   },
   "settingSystemGroupEnabled": {
     "message": "تجميع صفحات المتصفح تحت «System»",
@@ -406,6 +414,14 @@
   "aiDismiss": {
     "message": "رفض",
     "description": "Button that dismisses AI suggestions."
+  },
+  "aiApplyAll": {
+    "message": "تطبيق الكل",
+    "description": "Button that applies all AI suggestions."
+  },
+  "aiApplyingAll": {
+    "message": "جارٍ تطبيق الكل...",
+    "description": "Button label while applying all suggestions."
   },
   "aiApply": {
     "message": "تطبيق",
@@ -949,5 +965,89 @@
   "importSelectJson": {
     "message": "يرجى اختيار ملف JSON",
     "description": "Error when a non-JSON file is selected."
+  },
+  "tabDiscardSectionTitle": {
+    "message": "تجميد التبويبات وتوفير الذاكرة",
+    "description": "Section header for tab discarding and memory saving settings."
+  },
+  "tabDiscardSectionDesc": {
+    "message": "تجميد التبويبات الخاملة تلقائياً لتقليل استهلاك الذاكرة العشوائية وتسريع المتصفح.",
+    "description": "Description for tab discarding section."
+  },
+  "tabDiscardEnabled": {
+    "message": "تفعيل تجميد التبويبات التلقائي",
+    "description": "Toggle to enable tab hibernation."
+  },
+  "tabDiscardInactivityTimeout": {
+    "message": "مدة الخمول قبل التجميد",
+    "description": "Timeout label before discarding an idle tab."
+  },
+  "tabDiscardTimeout1m": {
+    "message": "دقيقة واحدة",
+    "description": "1 minute inactivity timeout."
+  },
+  "tabDiscardTimeout5m": {
+    "message": "5 دقائق",
+    "description": "5 minutes inactivity timeout."
+  },
+  "tabDiscardTimeout15m": {
+    "message": "15 دقيقة",
+    "description": "15 minutes inactivity timeout."
+  },
+  "tabDiscardTimeout30m": {
+    "message": "30 دقيقة",
+    "description": "30 minutes inactivity timeout."
+  },
+  "tabDiscardTimeout60m": {
+    "message": "ساعة واحدة",
+    "description": "1 hour inactivity timeout."
+  },
+  "tabDiscardWakeNoticeLabel": {
+    "message": "إظهار إشعار تنبيه عند العودة للصفحة المستعادة",
+    "description": "Toggle to show wake notice when returning to hibernated tab."
+  },
+  "tabDiscardWakeNoticeDesc": {
+    "message": "عرض شريط تنبيه أعلى الصفحة عند استعادتها من وضع السكون مع زر لإعادة التحميل السريع.",
+    "description": "Description for wake notice toggle."
+  },
+  "tabDiscardWakeNoticeText": {
+    "message": "تمت استعادة هذه الصفحة من وضع السكون. قد تحتاج لإعادة التحميل لتحديث البيانات الحية.",
+    "description": "Notice text shown in the restored page banner."
+  },
+  "tabDiscardReloadBtn": {
+    "message": "إعادة تحميل الصفحة",
+    "description": "Button to reload the restored tab."
+  },
+  "tabDiscardDismissBtn": {
+    "message": "تجاهل",
+    "description": "Button to dismiss the wake notice banner."
+  },
+  "tabDiscardProtectProtectedGroups": {
+    "message": "منع تجميد التبويبات داخل المجموعات المحمية",
+    "description": "Option to protect tabs inside protected groups from being discarded."
+  },
+  "tabDiscardMinTabCountLabel": {
+    "message": "الحد الأدنى للتبويبات المفتوحة لبدء التجميد",
+    "description": "Minimum tab count setting."
+  },
+  "tabDiscardMinTabCountDesc": {
+    "message": "تجميد التبويبات فقط عندما يتجاوز إجمالي التبويبات المفتوحة هذا العدد (0 = التجميد دائماً متاح).",
+    "description": "Description for minimum open tabs."
+  },
+  "tabDiscardExcludedDomainsLabel": {
+    "message": "المواقع والنطاقات المستثناة من التجميد",
+    "description": "Label for list of domains excluded from hibernation."
+  },
+  "tabDiscardExcludedPlaceholder": {
+    "message": "مثال: meet.google.com, dashboard.com",
+    "description": "Placeholder for adding excluded domain."
+  },
+  "tabDiscardAddDomainBtn": {
+    "message": "إضافة موقع",
+    "description": "Button to add excluded domain."
+  },
+  "tabDiscardEmptyExcludedList": {
+    "message": "لا توجد نطاقات مستثناة حالياً.",
+    "description": "Empty state for excluded domains list."
   }
 }

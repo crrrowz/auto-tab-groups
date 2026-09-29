@@ -8,7 +8,7 @@ import type { CustomRule, TabGroupColor } from "./rules"
 /**
  * Group-by mode options
  */
-export type GroupByMode = "rules-only" | "domain" | "subdomain"
+export type GroupByMode = "rules-only" | "domain" | "subdomain" | "ai"
 
 /**
  * Rule matching mode options
@@ -105,6 +105,18 @@ export interface StorageSchema {
   lockLaterGroupFirstTab: boolean
   /** ID of the leader tab in the later group */
   laterGroupLeaderTabId: number | null
+  /** Whether automatic tab hibernation/discarding is enabled */
+  tabDiscardEnabled: boolean
+  /** Inactivity threshold in minutes before discarding an idle tab */
+  tabDiscardInactivityMinutes: number
+  /** List of domains excluded from auto-discard */
+  tabDiscardExcludedDomains: string[]
+  /** Prevent discarding tabs inside protected groups */
+  tabDiscardProtectProtectedGroups: boolean
+  /** Minimum open tab count before discarding begins */
+  tabDiscardMinTabCount: number
+  /** Show in-page wake-up notice on tab restoration */
+  tabDiscardShowWakeNotice: boolean
 }
 
 /**
@@ -139,7 +151,13 @@ export const DEFAULT_STATE: StorageSchema = {
   aiCustomModel: "",
   laterGroupName: "فيما بعد",
   lockLaterGroupFirstTab: true,
-  laterGroupLeaderTabId: null
+  laterGroupLeaderTabId: null,
+  tabDiscardEnabled: true,
+  tabDiscardInactivityMinutes: 15,
+  tabDiscardExcludedDomains: [],
+  tabDiscardProtectProtectedGroups: true,
+  tabDiscardMinTabCount: 0,
+  tabDiscardShowWakeNotice: true
 }
 
 /**

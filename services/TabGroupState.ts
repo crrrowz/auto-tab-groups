@@ -35,6 +35,12 @@ class TabGroupState {
   laterGroupName: string
   lockLaterGroupFirstTab: boolean
   laterGroupLeaderTabId: number | null
+  tabDiscardEnabled: boolean
+  tabDiscardInactivityMinutes: number
+  tabDiscardExcludedDomains: string[]
+  tabDiscardProtectProtectedGroups: boolean
+  tabDiscardMinTabCount: number
+  tabDiscardShowWakeNotice: boolean
 
   constructor() {
     this.autoGroupingEnabled = DEFAULT_STATE.autoGroupingEnabled
@@ -57,6 +63,12 @@ class TabGroupState {
     this.laterGroupName = DEFAULT_STATE.laterGroupName
     this.lockLaterGroupFirstTab = DEFAULT_STATE.lockLaterGroupFirstTab
     this.laterGroupLeaderTabId = DEFAULT_STATE.laterGroupLeaderTabId
+    this.tabDiscardEnabled = DEFAULT_STATE.tabDiscardEnabled
+    this.tabDiscardInactivityMinutes = DEFAULT_STATE.tabDiscardInactivityMinutes
+    this.tabDiscardExcludedDomains = [...DEFAULT_STATE.tabDiscardExcludedDomains]
+    this.tabDiscardProtectProtectedGroups = DEFAULT_STATE.tabDiscardProtectProtectedGroups
+    this.tabDiscardMinTabCount = DEFAULT_STATE.tabDiscardMinTabCount
+    this.tabDiscardShowWakeNotice = DEFAULT_STATE.tabDiscardShowWakeNotice
   }
 
   /**
@@ -87,6 +99,12 @@ class TabGroupState {
       data.laterGroupLeaderTabId !== undefined
         ? data.laterGroupLeaderTabId
         : this.laterGroupLeaderTabId
+    this.tabDiscardEnabled = data.tabDiscardEnabled ?? this.tabDiscardEnabled
+    this.tabDiscardInactivityMinutes = data.tabDiscardInactivityMinutes ?? this.tabDiscardInactivityMinutes
+    this.tabDiscardExcludedDomains = data.tabDiscardExcludedDomains ?? this.tabDiscardExcludedDomains
+    this.tabDiscardProtectProtectedGroups = data.tabDiscardProtectProtectedGroups ?? this.tabDiscardProtectProtectedGroups
+    this.tabDiscardMinTabCount = data.tabDiscardMinTabCount ?? this.tabDiscardMinTabCount
+    this.tabDiscardShowWakeNotice = data.tabDiscardShowWakeNotice ?? this.tabDiscardShowWakeNotice
 
     this.customRules.clear()
 
@@ -124,7 +142,13 @@ class TabGroupState {
       protectedGroupTitles: this.protectedGroupTitles,
       laterGroupName: this.laterGroupName,
       lockLaterGroupFirstTab: this.lockLaterGroupFirstTab,
-      laterGroupLeaderTabId: this.laterGroupLeaderTabId
+      laterGroupLeaderTabId: this.laterGroupLeaderTabId,
+      tabDiscardEnabled: this.tabDiscardEnabled,
+      tabDiscardInactivityMinutes: this.tabDiscardInactivityMinutes,
+      tabDiscardExcludedDomains: this.tabDiscardExcludedDomains,
+      tabDiscardProtectProtectedGroups: this.tabDiscardProtectProtectedGroups,
+      tabDiscardMinTabCount: this.tabDiscardMinTabCount,
+      tabDiscardShowWakeNotice: this.tabDiscardShowWakeNotice
     }
   }
 

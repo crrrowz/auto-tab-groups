@@ -83,6 +83,7 @@
               <button class="toggle-option" data-value="rules-only" data-i18n="settingGroupByRulesOnly">Rules only</button>
               <button class="toggle-option active" data-value="domain" data-i18n="settingGroupByDomain">Domain</button>
               <button class="toggle-option" data-value="subdomain" data-i18n="settingGroupBySubdomain">Sub-domain</button>
+              <button class="toggle-option" data-value="ai" data-i18n="settingGroupByAi">AI / Semantic</button>
             </div>
           </div>
           <div class="toggle-container">
@@ -462,6 +463,101 @@
             </div>
             <div class="help-text blacklist-help" data-i18n="blacklistHelp">
               Blacklisted domains will never be grouped
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab Hibernation & Memory Saver Section -->
+        <div class="tab-discard-section">
+          <button class="tab-discard-toggle">
+            <span class="noselect" data-i18n="tabDiscardSectionTitle">Tab Hibernation &amp; Memory Saver</span>
+            <span class="up-arrow">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                <path
+                  d="m16.707 13.293-4-4a1 1 0 0 0-1.414 0l-4 4A1 1 0 0 0 8 15h8a1 1 0 0 0 .707-1.707z"
+                  style="fill: #06b6d4"
+                  data-name="Up"
+                />
+              </svg>
+            </span>
+          </button>
+          <div class="tab-discard-content">
+            <div class="help-text" data-i18n="tabDiscardSectionDesc" style="margin-bottom: 4px;">
+              Automatically hibernate idle tabs to reduce RAM usage and boost browser performance.
+            </div>
+            <div class="toggle-container">
+              <span data-i18n="tabDiscardEnabled">Enable Automatic Tab Hibernation</span>
+              <label class="switch">
+                <input type="checkbox" id="tabDiscardEnabledToggle" />
+                <span class="slider round"></span>
+              </label>
+            </div>
+            <div class="toggle-container" id="tabDiscardTimeoutContainer">
+              <span data-i18n="tabDiscardInactivityTimeout">Inactivity Timeout</span>
+              <select id="tabDiscardTimeoutSelect" class="ai-select" style="max-width: 140px; font-size: 12px; padding: 4px 8px;">
+                <option value="1" data-i18n="tabDiscardTimeout1m">1 minute</option>
+                <option value="5" data-i18n="tabDiscardTimeout5m">5 minutes</option>
+                <option value="15" selected data-i18n="tabDiscardTimeout15m">15 minutes</option>
+                <option value="30" data-i18n="tabDiscardTimeout30m">30 minutes</option>
+                <option value="60" data-i18n="tabDiscardTimeout60m">1 hour</option>
+              </select>
+            </div>
+            <div class="toggle-container">
+              <span data-i18n="tabDiscardWakeNoticeLabel">Show Wake-up Notice on Inactive Tab</span>
+              <label class="switch">
+                <input type="checkbox" id="tabDiscardShowWakeNoticeToggle" />
+                <span class="slider round"></span>
+              </label>
+            </div>
+            <div class="help-text" data-i18n="tabDiscardWakeNoticeDesc">
+              Displays a discreet top banner when returning to a restored page with a quick reload option.
+            </div>
+            <div class="toggle-container">
+              <span data-i18n="tabDiscardProtectProtectedGroups">Do not hibernate tabs in Protected Groups</span>
+              <label class="switch">
+                <input type="checkbox" id="tabDiscardProtectProtectedGroupsToggle" />
+                <span class="slider round"></span>
+              </label>
+            </div>
+            <div class="toggle-container">
+              <span data-i18n="tabDiscardMinTabCountLabel">Minimum Open Tabs to Start Hibernating</span>
+              <div class="number-input-container">
+                <input
+                  type="number"
+                  id="tabDiscardMinTabCountInput"
+                  min="0"
+                  max="100"
+                  value="0"
+                  class="number-input"
+                />
+              </div>
+            </div>
+            <div class="help-text" data-i18n="tabDiscardMinTabCountDesc">
+              Only hibernate tabs if total open tabs exceed this count (0 = always active).
+            </div>
+
+            <!-- Excluded Domains / Whitelist -->
+            <div style="margin-top: 6px;">
+              <span style="font-weight: 600; font-size: 12px;" data-i18n="tabDiscardExcludedDomainsLabel">Never Hibernate Domains</span>
+              <div class="tab-discard-input-row">
+                <input
+                  type="text"
+                  id="tabDiscardDomainInput"
+                  placeholder="e.g. meet.google.com, dashboard.com"
+                  data-i18n-placeholder="tabDiscardExcludedPlaceholder"
+                  class="tab-discard-domain-input"
+                />
+                <button
+                  type="button"
+                  id="tabDiscardAddDomainBtn"
+                  class="button primary"
+                  style="padding: 4px 10px; font-size: 11px;"
+                  data-i18n="tabDiscardAddDomainBtn"
+                >Add Domain</button>
+              </div>
+              <div class="tab-discard-list" id="tabDiscardExcludedList" style="margin-top: 8px;">
+                <!-- Excluded domains injected dynamically -->
+              </div>
             </div>
           </div>
         </div>

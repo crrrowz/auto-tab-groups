@@ -8,6 +8,11 @@ import type { CustomRule, TabGroupColor } from "../types"
 import { getRandomTabGroupColor } from "../utils/Constants"
 import { extractDomain, getDomainDisplayName } from "../utils/DomainUtils"
 import { detectEntityAndColor } from "../utils/EntityServiceDetector"
+import {
+  calculateTabSimilarity,
+  clusterTabsBySemanticSimilarity,
+  extractPageTokens
+} from "../utils/SemanticGrouping"
 import { getGroupColor, groupColorMapping, updateGroupColor } from "../utils/storage"
 import { withTabEditRetry } from "../utils/withTabEditRetry"
 import { rulesService, type MatchedRule } from "./RulesService"
@@ -564,6 +569,25 @@ class TabGroupServiceSimplified {
       return effectiveRule.effectiveGroupName || effectiveRule.name
     }
 
+    if (tabGroupState.groupByMode === "ai") {
+      const customRule = await rulesService.findMatchingRule(url, title)
+      if (customRule) {
+        return customRule.effectiveGroupName || customRule.name
+      }
+
+      if (extractDomain(url, false) === "system") {
+        return tabGroupState.systemGroupEnabled ? "System" : null
+      }
+
+      const entity = detectEntityAndColor(url, title)
+      if (entity) {
+        return entity.name
+      }
+
+      const domain = extractDomain(url, false)
+      return domain ? getDomainDisplayName(domain) : null
+    }
+
     const domain = extractDomain(url, tabGroupState.groupByMode === "subdomain")
     if (!domain) return null
 
@@ -692,11 +716,18 @@ class TabGroupServiceSimplified {
             }
           }
 
-          const includeSubDomain = tabGroupState.groupByMode === "subdomain"
-          const domain = extractDomain(tab.url || "", includeSubDomain)
-          const displayName = getDomainDisplayName(domain || "")
-          if (displayName === expectedTitle) {
-            count++
+          if (tabGroupState.groupByMode === "ai") {
+            const tabExpected = await this.getExpectedGroupTitle(tab)
+            if (tabExpected === expectedTitle) {
+              count++
+            }
+          } else {
+            const includeSubDomain = tabGroupState.groupByMode === "subdomain"
+            const domain = extractDomain(tab.url || "", includeSubDomain)
+            const displayName = getDomainDisplayName(domain || "")
+            if (displayName === expectedTitle) {
+              count++
+            }
           }
         }
       }
@@ -882,6 +913,9 @@ class TabGroupServiceSimplified {
             otherTab.title
           )
           shouldGroup = !!matchingRule && matchingRule.name === customRule.name
+        } else if (tabGroupState.groupByMode === "ai") {
+          const otherExpected = await this.getExpectedGroupTitle(otherTab)
+          shouldGroup = otherExpected === expectedTitle
         } else {
           const includeSubDomain = tabGroupState.groupByMode === "subdomain"
           const domain = extractDomain(otherTab.url || "", includeSubDomain)
@@ -1010,6 +1044,18 @@ class TabGroupServiceSimplified {
           const effectiveRule = customRule ?? (await rulesService.findCatchAllRule(tab.url || "", tab.title))
           if (effectiveRule) {
             expectedTitle = effectiveRule.effectiveGroupName || effectiveRule.name
+          }
+        } else if (tabGroupState.groupByMode === "ai") {
+          if (customRule) {
+            expectedTitle = customRule.effectiveGroupName || customRule.name
+          } else {
+            const entity = detectEntityAndColor(tab.url || "", tab.title)
+            if (entity) {
+              expectedTitle = entity.name
+            } else {
+              const domain = extractDomain(tab.url || "", false)
+              expectedTitle = getDomainDisplayName(domain || "")
+            }
           }
         } else {
           if (customRule) {

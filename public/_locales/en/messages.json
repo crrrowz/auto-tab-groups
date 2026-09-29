@@ -69,6 +69,10 @@
     "message": "Rules & Sub-domain",
     "description": "Option that groups by rules plus subdomain (popup)."
   },
+  "settingGroupByRulesAndAi": {
+    "message": "Rules & AI",
+    "description": "Option that groups by rules plus AI / semantic analysis (popup)."
+  },
   "settingGroupByDomain": {
     "message": "Domain",
     "description": "Option that groups by base domain (sidebar)."
@@ -76,6 +80,10 @@
   "settingGroupBySubdomain": {
     "message": "Sub-domain",
     "description": "Option that groups by subdomain (sidebar)."
+  },
+  "settingGroupByAi": {
+    "message": "AI / Semantic",
+    "description": "Option that groups tabs semantically using AI / purpose analysis (sidebar)."
   },
   "settingSystemGroupEnabled": {
     "message": "Group browser pages under \"System\"",
@@ -406,6 +414,14 @@
   "aiDismiss": {
     "message": "Dismiss",
     "description": "Button that dismisses AI suggestions."
+  },
+  "aiApplyAll": {
+    "message": "Apply All",
+    "description": "Button that applies all AI suggestions."
+  },
+  "aiApplyingAll": {
+    "message": "Applying all...",
+    "description": "Button label while applying all suggestions."
   },
   "aiApply": {
     "message": "Apply",
@@ -949,5 +965,89 @@
   "importSelectJson": {
     "message": "Please select a JSON file",
     "description": "Error when a non-JSON file is selected."
+  },
+  "tabDiscardSectionTitle": {
+    "message": "Tab Hibernation & Memory Saver",
+    "description": "Section header for tab discarding and memory saving settings."
+  },
+  "tabDiscardSectionDesc": {
+    "message": "Automatically hibernate idle tabs to reduce RAM usage and boost browser performance.",
+    "description": "Description for tab discarding section."
+  },
+  "tabDiscardEnabled": {
+    "message": "Enable Automatic Tab Hibernation",
+    "description": "Toggle to enable tab hibernation."
+  },
+  "tabDiscardInactivityTimeout": {
+    "message": "Inactivity Timeout",
+    "description": "Timeout label before discarding an idle tab."
+  },
+  "tabDiscardTimeout1m": {
+    "message": "1 minute",
+    "description": "1 minute inactivity timeout."
+  },
+  "tabDiscardTimeout5m": {
+    "message": "5 minutes",
+    "description": "5 minutes inactivity timeout."
+  },
+  "tabDiscardTimeout15m": {
+    "message": "15 minutes",
+    "description": "15 minutes inactivity timeout."
+  },
+  "tabDiscardTimeout30m": {
+    "message": "30 minutes",
+    "description": "30 minutes inactivity timeout."
+  },
+  "tabDiscardTimeout60m": {
+    "message": "1 hour",
+    "description": "1 hour inactivity timeout."
+  },
+  "tabDiscardWakeNoticeLabel": {
+    "message": "Show Wake-up Notice on Inactive Tab",
+    "description": "Toggle to show wake notice when returning to hibernated tab."
+  },
+  "tabDiscardWakeNoticeDesc": {
+    "message": "Displays a discreet top banner when returning to a restored page with a quick reload option.",
+    "description": "Description for wake notice toggle."
+  },
+  "tabDiscardWakeNoticeText": {
+    "message": "This page was restored from hibernation. You may need to reload for live updates.",
+    "description": "Notice text shown in the restored page banner."
+  },
+  "tabDiscardReloadBtn": {
+    "message": "Reload Page",
+    "description": "Button to reload the restored tab."
+  },
+  "tabDiscardDismissBtn": {
+    "message": "Dismiss",
+    "description": "Button to dismiss the wake notice banner."
+  },
+  "tabDiscardProtectProtectedGroups": {
+    "message": "Do not hibernate tabs in Protected Groups",
+    "description": "Option to protect tabs inside protected groups from being discarded."
+  },
+  "tabDiscardMinTabCountLabel": {
+    "message": "Minimum Open Tabs to Start Hibernating",
+    "description": "Minimum tab count setting."
+  },
+  "tabDiscardMinTabCountDesc": {
+    "message": "Only hibernate tabs if total open tabs exceed this count (0 = always active).",
+    "description": "Description for minimum open tabs."
+  },
+  "tabDiscardExcludedDomainsLabel": {
+    "message": "Never Hibernate Domains",
+    "description": "Label for list of domains excluded from hibernation."
+  },
+  "tabDiscardExcludedPlaceholder": {
+    "message": "e.g. meet.google.com, dashboard.com",
+    "description": "Placeholder for adding excluded domain."
+  },
+  "tabDiscardAddDomainBtn": {
+    "message": "Add Domain",
+    "description": "Button to add excluded domain."
+  },
+  "tabDiscardEmptyExcludedList": {
+    "message": "No excluded domains configured.",
+    "description": "Empty state for excluded domains list."
   }
 }

@@ -69,6 +69,10 @@
     "message": "नियम और उप-डोमेन",
     "description": "Option that groups by rules plus subdomain (popup)."
   },
+  "settingGroupByRulesAndAi": {
+    "message": "नियम और AI",
+    "description": "Option that groups by rules plus AI / semantic analysis (popup)."
+  },
   "settingGroupByDomain": {
     "message": "डोमेन",
     "description": "Option that groups by base domain (sidebar)."
@@ -76,6 +80,10 @@
   "settingGroupBySubdomain": {
     "message": "उप-डोमेन",
     "description": "Option that groups by subdomain (sidebar)."
+  },
+  "settingGroupByAi": {
+    "message": "AI / सिमेंटिक",
+    "description": "Option that groups tabs semantically using AI / purpose analysis."
   },
   "settingSystemGroupEnabled": {
     "message": "ब्राउज़र पेजों को \"System\" के अंतर्गत समूहित करें",
@@ -342,6 +350,14 @@
   "aiDismiss": {
     "message": "खारिज करें",
     "description": "Button that dismisses AI suggestions."
+  },
+  "aiApplyAll": {
+    "message": "सभी लागू करें",
+    "description": "Button that applies all AI suggestions."
+  },
+  "aiApplyingAll": {
+    "message": "सभी लागू हो रहे हैं...",
+    "description": "Button label while applying all suggestions."
   },
   "aiApply": {
     "message": "लागू करें",

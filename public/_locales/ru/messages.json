@@ -69,6 +69,10 @@
     "message": "Правила и поддомен",
     "description": "Option that groups by rules plus subdomain (popup)."
   },
+  "settingGroupByRulesAndAi": {
+    "message": "Правила и ИИ",
+    "description": "Option that groups by rules plus AI / semantic analysis (popup)."
+  },
   "settingGroupByDomain": {
     "message": "Домен",
     "description": "Option that groups by base domain (sidebar)."
@@ -76,6 +80,10 @@
   "settingGroupBySubdomain": {
     "message": "Поддомен",
     "description": "Option that groups by subdomain (sidebar)."
+  },
+  "settingGroupByAi": {
+    "message": "ИИ / Семантика",
+    "description": "Option that groups tabs semantically using AI / purpose analysis."
   },
   "settingSystemGroupEnabled": {
     "message": "Группировать страницы браузера в «System»",
@@ -342,6 +350,14 @@
   "aiDismiss": {
     "message": "Отклонить",
     "description": "Button that dismisses AI suggestions."
+  },
+  "aiApplyAll": {
+    "message": "Применить все",
+    "description": "Button that applies all AI suggestions."
+  },
+  "aiApplyingAll": {
+    "message": "Применение всех...",
+    "description": "Button label while applying all suggestions."
   },
   "aiApply": {
     "message": "Применить",

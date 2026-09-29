@@ -69,6 +69,10 @@
     "message": "Reglas y subdominio",
     "description": "Option that groups by rules plus subdomain (popup)."
   },
+  "settingGroupByRulesAndAi": {
+    "message": "Reglas e IA",
+    "description": "Option that groups by rules plus AI / semantic analysis (popup)."
+  },
   "settingGroupByDomain": {
     "message": "Dominio",
     "description": "Option that groups by base domain (sidebar)."
@@ -76,6 +80,10 @@
   "settingGroupBySubdomain": {
     "message": "Subdominio",
     "description": "Option that groups by subdomain (sidebar)."
+  },
+  "settingGroupByAi": {
+    "message": "IA / Semántico",
+    "description": "Option that groups tabs semantically using AI / purpose analysis."
   },
   "settingSystemGroupEnabled": {
     "message": "Agrupar páginas del navegador en «System»",
@@ -346,6 +354,14 @@
   "aiDismiss": {
     "message": "Descartar",
     "description": "Button that dismisses AI suggestions."
+  },
+  "aiApplyAll": {
+    "message": "Aplicar todo",
+    "description": "Button that applies all AI suggestions."
+  },
+  "aiApplyingAll": {
+    "message": "Aplicando todo...",
+    "description": "Button label while applying all suggestions."
   },
   "aiApply": {
     "message": "Aplicar",

@@ -12,7 +12,8 @@ const mockBrowser = {
     ungroup: vi.fn().mockResolvedValue(undefined),
     update: vi.fn().mockResolvedValue({}),
     move: vi.fn().mockResolvedValue({}),
-    discard: vi.fn().mockResolvedValue(undefined)
+    discard: vi.fn().mockResolvedValue(undefined),
+    sendMessage: vi.fn().mockResolvedValue({})
   },
   tabGroups: {
     query: vi.fn().mockResolvedValue([]),
@@ -40,11 +41,15 @@ const mockBrowser = {
   storage: {
     local: {
       get: vi.fn().mockResolvedValue({}),
-      set: vi.fn().mockResolvedValue(undefined)
+      set: vi.fn().mockResolvedValue(undefined),
+      remove: vi.fn().mockResolvedValue(undefined),
+      clear: vi.fn().mockResolvedValue(undefined)
     },
     session: {
       get: vi.fn().mockResolvedValue({}),
-      set: vi.fn().mockResolvedValue(undefined)
+      set: vi.fn().mockResolvedValue(undefined),
+      remove: vi.fn().mockResolvedValue(undefined),
+      clear: vi.fn().mockResolvedValue(undefined)
     }
   }
 }

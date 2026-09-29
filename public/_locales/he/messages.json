@@ -69,6 +69,10 @@
     "message": "חוקים ותת-דומיין",
     "description": "Option that groups by rules plus subdomain (popup)."
   },
+  "settingGroupByRulesAndAi": {
+    "message": "חוקים ו-AI",
+    "description": "Option that groups by rules plus AI / semantic analysis (popup)."
+  },
   "settingGroupByDomain": {
     "message": "דומיין",
     "description": "Option that groups by base domain (sidebar)."
@@ -76,6 +80,10 @@
   "settingGroupBySubdomain": {
     "message": "תת-דומיין",
     "description": "Option that groups by subdomain (sidebar)."
+  },
+  "settingGroupByAi": {
+    "message": "AI / סמנטי",
+    "description": "Option that groups tabs semantically using AI / purpose analysis."
   },
   "settingSystemGroupEnabled": {
     "message": "קבץ דפי דפדפן תחת \"System\"",
@@ -342,6 +350,14 @@
   "aiDismiss": {
     "message": "בטל",
     "description": "Button that dismisses AI suggestions."
+  },
+  "aiApplyAll": {
+    "message": "החל הכל",
+    "description": "Button that applies all AI suggestions."
+  },
+  "aiApplyingAll": {
+    "message": "מחיל הכל...",
+    "description": "Button label while applying all suggestions."
   },
   "aiApply": {
     "message": "החל",

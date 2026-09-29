@@ -51,6 +51,7 @@ export default defineBackground(() => {
           const storageData = await loadAllStorage()
           tabGroupState.updateFromStorage(storageData)
           aiService.updateFromStorage(storageData)
+          tabDiscardService.updateFromStorage(storageData)
           await initI18n(tabGroupState.userLocale)
           stateInitialized = true
           console.log("State loaded successfully from storage")
@@ -621,6 +622,87 @@ export default defineBackground(() => {
             }
             break
 
+          // Tab Discard (Hibernation) & Wake-Up Notice
+          case "getTabDiscardState":
+            result = {
+              enabled: tabGroupState.tabDiscardEnabled,
+              inactivityMinutes: tabGroupState.tabDiscardInactivityMinutes,
+              excludedDomains: tabGroupState.tabDiscardExcludedDomains,
+              protectProtectedGroups: tabGroupState.tabDiscardProtectProtectedGroups,
+              minTabCount: tabGroupState.tabDiscardMinTabCount,
+              showWakeNotice: tabGroupState.tabDiscardShowWakeNotice
+            }
+            break
+
+          case "updateTabDiscardState":
+            if (msg.tabDiscardEnabled !== undefined) {
+              tabGroupState.tabDiscardEnabled = msg.tabDiscardEnabled
+            }
+            if (msg.tabDiscardInactivityMinutes !== undefined) {
+              tabGroupState.tabDiscardInactivityMinutes = msg.tabDiscardInactivityMinutes
+            }
+            if (msg.tabDiscardExcludedDomains !== undefined) {
+              tabGroupState.tabDiscardExcludedDomains = msg.tabDiscardExcludedDomains
+            }
+            if (msg.tabDiscardProtectProtectedGroups !== undefined) {
+              tabGroupState.tabDiscardProtectProtectedGroups = msg.tabDiscardProtectProtectedGroups
+            }
+            if (msg.tabDiscardMinTabCount !== undefined) {
+              tabGroupState.tabDiscardMinTabCount = msg.tabDiscardMinTabCount
+            }
+            if (msg.tabDiscardShowWakeNotice !== undefined) {
+              tabGroupState.tabDiscardShowWakeNotice = msg.tabDiscardShowWakeNotice
+            }
+            tabDiscardService.updateFromStorage({
+              tabDiscardEnabled: tabGroupState.tabDiscardEnabled,
+              tabDiscardInactivityMinutes: tabGroupState.tabDiscardInactivityMinutes,
+              tabDiscardExcludedDomains: tabGroupState.tabDiscardExcludedDomains,
+              tabDiscardProtectProtectedGroups: tabGroupState.tabDiscardProtectProtectedGroups,
+              tabDiscardMinTabCount: tabGroupState.tabDiscardMinTabCount,
+              tabDiscardShowWakeNotice: tabGroupState.tabDiscardShowWakeNotice
+            })
+            await saveState()
+            if (tabGroupState.tabDiscardEnabled) {
+              tabDiscardService.checkAndDiscardInactiveTabs().catch(() => {})
+            }
+            result = { success: true }
+            break
+
+          case "addTabDiscardExcludedDomain": {
+            const domainToAdd = typeof msg.domain === "string" ? msg.domain.trim().toLowerCase() : ""
+            if (domainToAdd && !tabGroupState.tabDiscardExcludedDomains.includes(domainToAdd)) {
+              tabGroupState.tabDiscardExcludedDomains = [
+                ...tabGroupState.tabDiscardExcludedDomains,
+                domainToAdd
+              ]
+              tabDiscardService.updateFromStorage({
+                tabDiscardExcludedDomains: tabGroupState.tabDiscardExcludedDomains
+              })
+              await saveState()
+              result = { success: true, excludedDomains: tabGroupState.tabDiscardExcludedDomains }
+            } else {
+              result = { success: false, error: "Invalid or duplicate domain" }
+            }
+            break
+          }
+
+          case "removeTabDiscardExcludedDomain": {
+            const domainToRemove = typeof msg.domain === "string" ? msg.domain.trim().toLowerCase() : ""
+            if (domainToRemove) {
+              tabGroupState.tabDiscardExcludedDomains = tabGroupState.tabDiscardExcludedDomains.filter(
+                d => d.toLowerCase() !== domainToRemove
+              )
+              tabDiscardService.updateFromStorage({
+                tabDiscardExcludedDomains: tabGroupState.tabDiscardExcludedDomains
+              })
+              await saveState()
+              result = { success: true, excludedDomains: tabGroupState.tabDiscardExcludedDomains }
+            } else {
+              result = { success: false, error: "Domain required" }
+            }
+            break
+          }
+
           // AI Features
           case "getAiState":
             result = {
@@ -668,6 +750,9 @@ export default defineBackground(() => {
             break
 
           case "smartGroupTabs": {
+            tabGroupState.groupByMode = "ai"
+            await saveState()
+
             const allTabs = await browser.tabs.query({ currentWindow: true })
             const eligibleTabs = allTabs.filter(
               tab =>
@@ -871,7 +956,7 @@ export default defineBackground(() => {
           }
 
           case "suggestGroups": {
-            tabGroupState.autoGroupingEnabled = false
+            tabGroupState.groupByMode = "ai"
             await saveState()
 
             if (!aiService.isEnabled()) {
@@ -970,6 +1055,9 @@ export default defineBackground(() => {
           }
 
           case "applySuggestion": {
+            tabGroupState.groupByMode = "ai"
+            await saveState()
+
             if (
               !msg.suggestion?.groupName ||
               !Array.isArray(msg.suggestion?.tabs)
@@ -1016,14 +1104,19 @@ export default defineBackground(() => {
                 >[1]["color"]
               })
 
-              // Mark this suggestion as applied in cache
+              // Mark this suggestion as applied in cache or remove applied suggestion from cache
               const cached = await cachedAiSuggestions.getValue()
               if (cached) {
-                const idx = cached.suggestions.findIndex(s => s.groupName === sugGroupName)
-                if (idx !== -1 && !cached.appliedIndices.includes(idx)) {
+                const remaining = cached.suggestions.filter(
+                  s => s.groupName.toLowerCase() !== sugGroupName.toLowerCase()
+                )
+                if (remaining.length === 0) {
+                  await cachedAiSuggestions.setValue(null)
+                } else {
                   await cachedAiSuggestions.setValue({
                     ...cached,
-                    appliedIndices: [...cached.appliedIndices, idx]
+                    suggestions: remaining,
+                    appliedIndices: []
                   })
                 }
               }
@@ -1035,6 +1128,68 @@ export default defineBackground(() => {
               }
             } catch (error) {
               result = { success: false, error: (error as Error).message }
+            }
+            break
+          }
+
+          case "applyAllSuggestions": {
+            tabGroupState.groupByMode = "ai"
+            await saveState()
+
+            const suggestionsToApply = msg.suggestions
+            if (!Array.isArray(suggestionsToApply) || suggestionsToApply.length === 0) {
+              result = { success: false, appliedCount: 0, errors: ["No suggestions to apply"] }
+              break
+            }
+
+            if (!browser.tabGroups) {
+              result = { success: false, appliedCount: 0, errors: ["Tab groups API not available"] }
+              break
+            }
+
+            let appliedCount = 0
+            const errors: string[] = []
+
+            for (const suggestion of suggestionsToApply) {
+              const { groupName: sugGroupName, color: sugColor, tabs: sugTabs } = suggestion
+              const validTabIds: number[] = []
+
+              for (const tabInfo of sugTabs) {
+                try {
+                  await browser.tabs.get(tabInfo.tabId)
+                  validTabIds.push(tabInfo.tabId)
+                } catch {
+                  // Tab closed or invalid
+                }
+              }
+
+              if (validTabIds.length === 0) {
+                continue
+              }
+
+              try {
+                const sugGroupId = await browser.tabs.group({
+                  tabIds: validTabIds as [number, ...number[]]
+                })
+                await browser.tabGroups.update(sugGroupId, {
+                  title: sugGroupName,
+                  color: (sugColor || "blue") as Parameters<
+                    typeof browser.tabGroups.update
+                  >[1]["color"]
+                })
+                appliedCount++
+              } catch (err) {
+                errors.push((err as Error).message)
+              }
+            }
+
+            // Clear suggestions cache as all were applied
+            await cachedAiSuggestions.setValue(null)
+
+            result = {
+              success: appliedCount > 0 || errors.length === 0,
+              appliedCount,
+              ...(errors.length > 0 ? { errors } : {})
             }
             break
           }
@@ -1145,24 +1300,17 @@ export default defineBackground(() => {
   // Tab event listeners
   browser.tabs.onUpdated.addListener(async (tabId, changeInfo) => {
     try {
+      if (changeInfo.url || changeInfo.status === "complete") {
+        tabDiscardService.disableBrowserHardDiscard(tabId).catch(() => {})
+      }
+
       if (tabGroupService.isStartupGracePeriodActive() || tabGroupService.isBulkOperationInProgress()) {
         return
       }
 
-      // Ignore loading states completely to prevent interfering with tab reloads/restores
-      if (changeInfo.status === "loading") {
-        return
-      }
-
-      // Only evaluate if tab URL actually changed on a complete navigation
+      // If URL changed or page load completed, evaluate tab grouping
       if (changeInfo.url) {
-        // If other tabs in the window are still loading, do not interfere
-        const allTabs = await browser.tabs.query({ currentWindow: true })
-        if (allTabs.some(t => t.status === "loading")) {
-          return
-        }
-
-        console.log(`[tabs.onUpdated] URL changed to: ${changeInfo.url}`)
+        console.log(`[tabs.onUpdated] URL changed to: ${changeInfo.url} for tab ${tabId}`)
         await ensureStateLoaded()
 
         // If openTabNextToCurrent is enabled and the URL is still a newtab URL, don't group into System
@@ -1173,6 +1321,10 @@ export default defineBackground(() => {
           return
         }
 
+        await tabGroupService.handleTabUpdate(tabId)
+      } else if (changeInfo.status === "complete") {
+        console.log(`[tabs.onUpdated] Tab ${tabId} load complete, evaluating grouping`)
+        await ensureStateLoaded()
         await tabGroupService.handleTabUpdate(tabId)
       } else if (Object.hasOwn(changeInfo, "pinned") && changeInfo.pinned === false) {
         console.log(`[tabs.onUpdated] Tab ${tabId} was unpinned, applying grouping`)
@@ -1293,6 +1445,8 @@ export default defineBackground(() => {
 
   browser.tabs.onMoved.addListener(async tabId => {
     try {
+      tabDiscardService.disableBrowserHardDiscard(tabId).catch(() => {})
+
       if (tabGroupService.isStartupGracePeriodActive() || tabGroupService.isBulkOperationInProgress()) {
         return
       }
@@ -1319,10 +1473,10 @@ export default defineBackground(() => {
   // Auto-collapse: Track timeout for debouncing
   let autoCollapseTimeoutId: ReturnType<typeof setTimeout> | null = null
 
-  // Handle tab activation for auto-collapse
+  // Handle tab activation for auto-collapse and wake notice
   browser.tabs.onActivated.addListener(async activeInfo => {
     try {
-      tabDiscardService.recordTabActivity(activeInfo.tabId)
+      tabDiscardService.handleTabActivated(activeInfo.tabId).catch(() => {})
       if (tabGroupService.isStartupGracePeriodActive()) {
         return
       }

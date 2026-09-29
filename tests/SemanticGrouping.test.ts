@@ -85,4 +85,15 @@ describe("SemanticGrouping", () => {
     const clusters = clusterTabsBySemanticSimilarity(tabs, 0.8)
     expect(clusters.length).toBe(2)
   })
+
+  it("does not split subdomains into subdomain groups in semantic clustering", () => {
+    const tabs = [
+      { id: 1, url: "https://sub1.example.com/page1", title: "Page 1" },
+      { id: 2, url: "https://sub2.example.com/page2", title: "Page 2" }
+    ]
+
+    const clusters = clusterTabsBySemanticSimilarity(tabs, 0.4)
+    expect(clusters.length).toBe(1)
+    expect(clusters[0].groupName).toBe("Example")
+  })
 })

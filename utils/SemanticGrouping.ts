@@ -5,6 +5,7 @@
  */
 
 import type { TabGroupColor } from "../types"
+import { extractDomain, getDomainDisplayName } from "./DomainUtils"
 import { detectEntityAndColor } from "./EntityServiceDetector"
 
 export interface TabAnalysisItem {
@@ -216,13 +217,12 @@ export function generateMeaningfulGroupName(items: TabAnalysisItem[]): {
   }
 
   // Domain formatted
-  const cleanDomain = topDomain
-    .replace(/^www\./, "")
-    .split(".")[0]
-  const formatted = cleanDomain.charAt(0).toUpperCase() + cleanDomain.slice(1)
+  const baseDomain =
+    extractDomain(topDomain.includes("://") ? topDomain : `https://${topDomain}`, false) || topDomain
+  const cleanDomain = getDomainDisplayName(baseDomain) || baseDomain
 
   return {
-    name: formatted || "Tabs",
+    name: cleanDomain || "Tabs",
     color: "blue"
   }
 }
@@ -240,7 +240,7 @@ export function clusterTabsBySemanticSimilarity(
   const items: TabAnalysisItem[] = rawTabs.map(t => {
     let domain = "unknown"
     try {
-      domain = new URL(t.url).hostname
+      domain = extractDomain(t.url, false) || new URL(t.url).hostname
     } catch {
       // fallback
     }

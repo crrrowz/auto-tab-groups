@@ -20,6 +20,7 @@ export type AiMessageAction =
   | "generateRule"
   | "suggestGroups"
   | "applySuggestion"
+  | "applyAllSuggestions"
   | "analyzeRuleConflicts"
 
 /**
@@ -175,6 +176,23 @@ export interface ApplySuggestionResponse {
 }
 
 /**
+ * Apply all AI-suggested groups
+ */
+export interface ApplyAllSuggestionsMessage {
+  action: "applyAllSuggestions"
+  suggestions: readonly AiGroupSuggestion[]
+}
+
+/**
+ * Response for applyAllSuggestions
+ */
+export interface ApplyAllSuggestionsResponse {
+  success: boolean
+  appliedCount: number
+  errors?: string[]
+}
+
+/**
  * Analyze rule patterns for conflicts with existing rules
  */
 export interface AnalyzeRuleConflictsMessage {
@@ -209,6 +227,7 @@ export type AiMessage =
   | GenerateRuleMessage
   | SuggestGroupsMessage
   | ApplySuggestionMessage
+  | ApplyAllSuggestionsMessage
   | AnalyzeRuleConflictsMessage
   | SetCustomAiConfigMessage
   | TestAiConnectionMessage

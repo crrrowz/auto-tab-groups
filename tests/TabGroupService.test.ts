@@ -1419,4 +1419,58 @@ describe("TabGroupService", () => {
       vi.useRealTimers()
     })
   })
+
+  describe("AI / Semantic GroupByMode", () => {
+    it("should return entity name for known service in ai mode", async () => {
+      tabGroupState.groupByMode = "ai"
+      const tab = {
+        id: 1,
+        url: "https://github.com/facebook/react",
+        title: "facebook/react: The library for web and native user interfaces",
+        pinned: false,
+        windowId: 1
+      } as any
+
+      const title = await tabGroupService.getExpectedGroupTitle(tab)
+      expect(title).toBe("GitHub")
+    })
+
+    it("should fallback to domain name in ai mode when no entity detected", async () => {
+      tabGroupState.groupByMode = "ai"
+      const tab = {
+        id: 1,
+        url: "https://unknown-domain-xyz123.com/page",
+        title: "Random Page",
+        pinned: false,
+        windowId: 1
+      } as any
+
+      const title = await tabGroupService.getExpectedGroupTitle(tab)
+      expect(title).toBe("Unknown-domain-xyz123")
+    })
+
+    it("should respect custom rules over AI entity detection", async () => {
+      tabGroupState.groupByMode = "ai"
+      tabGroupState.addCustomRule("r1", {
+        id: "r1",
+        name: "My Custom GitHub",
+        domains: ["github.com"],
+        color: "red",
+        enabled: true,
+        priority: 1,
+        createdAt: new Date().toISOString()
+      })
+
+      const tab = {
+        id: 1,
+        url: "https://github.com/facebook/react",
+        title: "facebook/react",
+        pinned: false,
+        windowId: 1
+      } as any
+
+      const title = await tabGroupService.getExpectedGroupTitle(tab)
+      expect(title).toBe("My Custom GitHub")
+    })
+  })
 })

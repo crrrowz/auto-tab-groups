@@ -79,6 +79,18 @@ const blacklistCount = document.getElementById("blacklistCount") as HTMLSpanElem
 const blacklistList = document.getElementById("blacklistList") as HTMLDivElement
 const addBlacklistButton = document.getElementById("addBlacklistButton") as HTMLButtonElement
 
+// Tab Discard Elements
+const tabDiscardToggle = document.querySelector(".tab-discard-toggle") as HTMLButtonElement | null
+const tabDiscardContent = document.querySelector(".tab-discard-content") as HTMLDivElement | null
+const tabDiscardEnabledToggle = document.getElementById("tabDiscardEnabledToggle") as HTMLInputElement | null
+const tabDiscardTimeoutSelect = document.getElementById("tabDiscardTimeoutSelect") as HTMLSelectElement | null
+const tabDiscardShowWakeNoticeToggle = document.getElementById("tabDiscardShowWakeNoticeToggle") as HTMLInputElement | null
+const tabDiscardProtectProtectedGroupsToggle = document.getElementById("tabDiscardProtectProtectedGroupsToggle") as HTMLInputElement | null
+const tabDiscardMinTabCountInput = document.getElementById("tabDiscardMinTabCountInput") as HTMLInputElement | null
+const tabDiscardDomainInput = document.getElementById("tabDiscardDomainInput") as HTMLInputElement | null
+const tabDiscardAddDomainBtn = document.getElementById("tabDiscardAddDomainBtn") as HTMLButtonElement | null
+const tabDiscardExcludedList = document.getElementById("tabDiscardExcludedList") as HTMLDivElement | null
+
 // Advanced Elements
 const advancedToggle = document.querySelector(".advanced-toggle") as HTMLButtonElement
 const advancedContent = document.querySelector(".advanced-content") as HTMLDivElement
@@ -138,6 +150,7 @@ let customModelIds = new Set<string>()
 let sortingSectionExpanded = false
 let customRulesExpanded = false
 let blacklistExpanded = false
+let tabDiscardExpanded = false
 let advancedExpanded = false
 let currentRules: Record<string, CustomRule> = {}
 
@@ -592,6 +605,120 @@ function toggleBlacklistSection(): void {
     if (Object.keys(currentRules).length === 0) {
       loadCustomRules()
     }
+  }
+}
+
+// Toggle tab discard section
+function toggleTabDiscardSection(): void {
+  if (!tabDiscardToggle || !tabDiscardContent) return
+  tabDiscardExpanded = !tabDiscardExpanded
+  tabDiscardToggle.classList.toggle("expanded", tabDiscardExpanded)
+  tabDiscardContent.classList.toggle("expanded", tabDiscardExpanded)
+
+  if (tabDiscardExpanded) {
+    loadTabDiscardSettings()
+  }
+}
+
+// Render excluded domains list
+function renderExcludedDomains(domains: string[] = []): void {
+  if (!tabDiscardExcludedList) return
+  while (tabDiscardExcludedList.firstChild) {
+    tabDiscardExcludedList.removeChild(tabDiscardExcludedList.firstChild)
+  }
+
+  if (domains.length === 0) {
+    const emptyDiv = document.createElement("div")
+    emptyDiv.className = "empty-state"
+    emptyDiv.textContent = t("tabDiscardEmptyExcludedList", "No excluded domains configured.")
+    tabDiscardExcludedList.appendChild(emptyDiv)
+    return
+  }
+
+  const sortedDomains = [...domains].sort((a, b) => a.localeCompare(b))
+  for (const domain of sortedDomains) {
+    const item = document.createElement("div")
+    item.className = "tab-discard-item"
+
+    const domainSpan = document.createElement("span")
+    domainSpan.className = "tab-discard-item-domain"
+    domainSpan.textContent = domain
+
+    const deleteBtn = document.createElement("button")
+    deleteBtn.className = "tab-discard-delete-btn"
+    deleteBtn.title = t("rulesDelete", "Delete")
+    deleteBtn.innerHTML = "&times;"
+    deleteBtn.addEventListener("click", async () => {
+      const res = await sendMessage<{ success: boolean; excludedDomains?: string[] }>({
+        action: "removeTabDiscardExcludedDomain",
+        domain
+      })
+      if (res?.excludedDomains) {
+        renderExcludedDomains(res.excludedDomains)
+      }
+    })
+
+    item.appendChild(domainSpan)
+    item.appendChild(deleteBtn)
+    tabDiscardExcludedList.appendChild(item)
+  }
+}
+
+// Load tab discard settings
+async function loadTabDiscardSettings(): Promise<void> {
+  try {
+    const state = await sendMessage<{
+      enabled: boolean
+      inactivityMinutes: number
+      excludedDomains: string[]
+      protectProtectedGroups: boolean
+      minTabCount: number
+      showWakeNotice: boolean
+    }>({ action: "getTabDiscardState" })
+
+    if (!state) return
+
+    if (tabDiscardEnabledToggle) {
+      tabDiscardEnabledToggle.checked = state.enabled ?? true
+    }
+    if (tabDiscardTimeoutSelect) {
+      tabDiscardTimeoutSelect.value = String(state.inactivityMinutes ?? 15)
+    }
+    if (tabDiscardShowWakeNoticeToggle) {
+      tabDiscardShowWakeNoticeToggle.checked = state.showWakeNotice ?? true
+    }
+    if (tabDiscardProtectProtectedGroupsToggle) {
+      tabDiscardProtectProtectedGroupsToggle.checked = state.protectProtectedGroups ?? true
+    }
+    if (tabDiscardMinTabCountInput) {
+      tabDiscardMinTabCountInput.value = String(state.minTabCount ?? 0)
+    }
+    renderExcludedDomains(state.excludedDomains || [])
+  } catch (error) {
+    console.error("Error loading tab discard settings:", error)
+  }
+}
+
+// Add excluded domain
+async function addExcludedDomain(): Promise<void> {
+  if (!tabDiscardDomainInput) return
+  const rawValue = tabDiscardDomainInput.value.trim()
+  if (!rawValue) return
+
+  let domain = rawValue.toLowerCase()
+  if (domain.includes("://") || domain.includes("/")) {
+    const extracted = extractDomain(rawValue, true) || extractDomain(rawValue, false)
+    if (extracted) domain = extracted.toLowerCase()
+  }
+
+  const res = await sendMessage<{ success: boolean; excludedDomains?: string[] }>({
+    action: "addTabDiscardExcludedDomain",
+    domain
+  })
+
+  if (res?.success && res?.excludedDomains) {
+    tabDiscardDomainInput.value = ""
+    renderExcludedDomains(res.excludedDomains)
   }
 }
 
@@ -1449,12 +1576,11 @@ function stopAiStatusPolling(): void {
 // --- AI Suggestion Handlers ---
 
 async function handleSuggestGroups(): Promise<void> {
-  if (autoGroupToggle) {
-    autoGroupToggle.checked = false
-  }
+  // Automatically switch Group By mode to AI / Semantic and persist
+  updateGroupByToggle("ai")
   sendMessage({
-    action: "toggleAutoGroup",
-    enabled: false
+    action: "setGroupByMode",
+    mode: "ai"
   })
 
   aiSuggestButton.disabled = true
@@ -1494,11 +1620,22 @@ function renderSuggestions(
 ): void {
   aiSuggestionsContainer.innerHTML = ""
 
-  if (suggestions.length === 0) {
+  // Filter out any that were already marked applied
+  const remainingSuggestions = suggestions.filter((_, idx) => !appliedIndices.includes(idx))
+
+  if (remainingSuggestions.length === 0) {
     aiSuggestStatus.textContent = t("aiNoSuggestions", "No suggestions found")
     aiSuggestStatus.className = "ai-suggest-status"
     return
   }
+
+  const headerControls = document.createElement("div")
+  headerControls.className = "ai-suggestions-header"
+
+  const applyAllBtn = document.createElement("button")
+  applyAllBtn.className = "suggestion-apply-all-btn"
+  applyAllBtn.textContent = t("aiApplyAll", "Apply All")
+  applyAllBtn.addEventListener("click", () => handleApplyAllSuggestions(remainingSuggestions, applyAllBtn))
 
   const dismissBtn = document.createElement("button")
   dismissBtn.className = "suggestion-dismiss-btn"
@@ -1507,12 +1644,14 @@ function renderSuggestions(
     await cachedAiSuggestions.setValue(null)
     aiSuggestionsContainer.innerHTML = ""
   })
-  aiSuggestionsContainer.appendChild(dismissBtn)
 
-  for (const [index, suggestion] of suggestions.entries()) {
-    const isApplied = appliedIndices.includes(index)
+  headerControls.appendChild(applyAllBtn)
+  headerControls.appendChild(dismissBtn)
+  aiSuggestionsContainer.appendChild(headerControls)
+
+  for (const suggestion of remainingSuggestions) {
     const card = document.createElement("div")
-    card.className = `suggestion-card${isApplied ? " applied" : ""}`
+    card.className = "suggestion-card"
     const colorHex = RULE_COLORS[suggestion.color] || RULE_COLORS.blue
     card.style.borderLeftColor = colorHex
 
@@ -1554,12 +1693,9 @@ function renderSuggestions(
     actions.className = "suggestion-actions"
 
     const applyBtn = document.createElement("button")
-    applyBtn.className = `suggestion-apply-btn${isApplied ? " applied" : ""}`
-    applyBtn.textContent = isApplied ? t("aiApplied", "Applied!") : t("aiApply", "Apply")
-    applyBtn.disabled = isApplied
-    if (!isApplied) {
-      applyBtn.addEventListener("click", () => handleApplySuggestion(suggestion, applyBtn))
-    }
+    applyBtn.className = "suggestion-apply-btn"
+    applyBtn.textContent = t("aiApply", "Apply")
+    applyBtn.addEventListener("click", () => handleApplySuggestion(suggestion, card))
 
     const ruleBtn = document.createElement("button")
     ruleBtn.className = "suggestion-rule-btn"
@@ -1578,10 +1714,13 @@ function renderSuggestions(
 
 async function handleApplySuggestion(
   suggestion: AiGroupSuggestion,
-  button: HTMLButtonElement
+  card: HTMLDivElement
 ): Promise<void> {
-  button.disabled = true
-  button.textContent = t("aiApplying", "Applying...")
+  const button = card.querySelector(".suggestion-apply-btn") as HTMLButtonElement | null
+  if (button) {
+    button.disabled = true
+    button.textContent = t("aiApplying", "Applying...")
+  }
 
   try {
     const response = await sendMessage<{
@@ -1595,23 +1734,57 @@ async function handleApplySuggestion(
     })
 
     if (response?.success) {
-      button.textContent = t("aiApplied", "Applied!")
-      button.classList.add("applied")
-      if (response.staleTabIds && response.staleTabIds.length > 0) {
-        const count = response.staleTabIds.length
-        const plural = count !== 1 ? "s" : ""
-        button.textContent = t("aiAppliedWithStale", `Applied (${count} tab${plural} closed)`, [
-          String(count),
-          plural
-        ])
+      // Remove the card immediately
+      card.remove()
+      // If no suggestion cards left, clear the container (including header)
+      const remainingCards = aiSuggestionsContainer.querySelectorAll(".suggestion-card")
+      if (remainingCards.length === 0) {
+        aiSuggestionsContainer.innerHTML = ""
+        await cachedAiSuggestions.setValue(null)
       }
     } else {
-      button.textContent = t("aiFailed", "Failed")
-      button.disabled = false
+      if (button) {
+        button.textContent = t("aiFailed", "Failed")
+        button.disabled = false
+      }
       console.error("Failed to apply suggestion:", response?.error)
     }
   } catch (error) {
     console.error("Error applying suggestion:", error)
+    if (button) {
+      button.textContent = t("aiFailed", "Failed")
+      button.disabled = false
+    }
+  }
+}
+
+async function handleApplyAllSuggestions(
+  suggestions: readonly AiGroupSuggestion[],
+  button: HTMLButtonElement
+): Promise<void> {
+  button.disabled = true
+  button.textContent = t("aiApplyingAll", "Applying all...")
+
+  try {
+    const response = await sendMessage<{
+      success?: boolean
+      appliedCount?: number
+      errors?: string[]
+    }>({
+      action: "applyAllSuggestions",
+      suggestions
+    })
+
+    if (response?.success) {
+      aiSuggestionsContainer.innerHTML = ""
+      await cachedAiSuggestions.setValue(null)
+    } else {
+      button.textContent = t("aiFailed", "Failed")
+      button.disabled = false
+      console.error("Failed to apply all suggestions:", response?.errors)
+    }
+  } catch (error) {
+    console.error("Error applying all suggestions:", error)
     button.textContent = t("aiFailed", "Failed")
     button.disabled = false
   }
@@ -1876,6 +2049,57 @@ importRulesButton?.addEventListener("click", importRules)
 blacklistToggle?.addEventListener("click", toggleBlacklistSection)
 addBlacklistButton?.addEventListener("click", addBlacklistRule)
 
+// Tab Discard event listeners
+tabDiscardToggle?.addEventListener("click", toggleTabDiscardSection)
+
+tabDiscardEnabledToggle?.addEventListener("change", async () => {
+  if (!tabDiscardEnabledToggle) return
+  await sendMessage({
+    action: "updateTabDiscardState",
+    tabDiscardEnabled: tabDiscardEnabledToggle.checked
+  })
+})
+
+tabDiscardTimeoutSelect?.addEventListener("change", async () => {
+  if (!tabDiscardTimeoutSelect) return
+  await sendMessage({
+    action: "updateTabDiscardState",
+    tabDiscardInactivityMinutes: parseInt(tabDiscardTimeoutSelect.value, 10) || 15
+  })
+})
+
+tabDiscardShowWakeNoticeToggle?.addEventListener("change", async () => {
+  if (!tabDiscardShowWakeNoticeToggle) return
+  await sendMessage({
+    action: "updateTabDiscardState",
+    tabDiscardShowWakeNotice: tabDiscardShowWakeNoticeToggle.checked
+  })
+})
+
+tabDiscardProtectProtectedGroupsToggle?.addEventListener("change", async () => {
+  if (!tabDiscardProtectProtectedGroupsToggle) return
+  await sendMessage({
+    action: "updateTabDiscardState",
+    tabDiscardProtectProtectedGroups: tabDiscardProtectProtectedGroupsToggle.checked
+  })
+})
+
+tabDiscardMinTabCountInput?.addEventListener("change", async () => {
+  if (!tabDiscardMinTabCountInput) return
+  await sendMessage({
+    action: "updateTabDiscardState",
+    tabDiscardMinTabCount: Math.max(0, parseInt(tabDiscardMinTabCountInput.value, 10) || 0)
+  })
+})
+
+tabDiscardAddDomainBtn?.addEventListener("click", addExcludedDomain)
+tabDiscardDomainInput?.addEventListener("keydown", event => {
+  if (event.key === "Enter") {
+    event.preventDefault()
+    addExcludedDomain()
+  }
+})
+
 // Advanced section toggle
 function toggleAdvancedSection(): void {
   advancedExpanded = !advancedExpanded
@@ -1927,4 +2151,5 @@ async function loadCachedSuggestions(): Promise<void> {
 i18nReady.then(() => {
   loadCachedSuggestions()
   loadCustomRules()
+  loadTabDiscardSettings()
 })

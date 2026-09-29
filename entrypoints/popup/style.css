@@ -441,8 +441,8 @@ input:checked + .slider:before {
 
 .toggle-option {
   flex: 1;
-  min-width: 60px;
-  padding: 6px 8px;
+  min-width: 50px;
+  padding: 5px 6px;
   font-size: 11px;
   font-weight: 500;
   color: var(--text-secondary);
@@ -642,6 +642,7 @@ input:checked + .slider:before {
 .sorting-section,
 .rules-section,
 .blacklist-section,
+.tab-discard-section,
 .advanced-section,
 .ai-section {
   display: flex;
@@ -658,6 +659,7 @@ input:checked + .slider:before {
 .sorting-section:hover,
 .rules-section:hover,
 .blacklist-section:hover,
+.tab-discard-section:hover,
 .advanced-section:hover,
 .ai-section:hover {
   border-color: var(--border-medium);
@@ -666,6 +668,7 @@ input:checked + .slider:before {
 .sorting-toggle,
 .rules-toggle,
 .blacklist-toggle,
+.tab-discard-toggle,
 .advanced-toggle,
 .ai-toggle {
   width: 100%;
@@ -686,6 +689,7 @@ input:checked + .slider:before {
 .sorting-toggle:hover,
 .rules-toggle:hover,
 .blacklist-toggle:hover,
+.tab-discard-toggle:hover,
 .advanced-toggle:hover,
 .ai-toggle:hover {
   background: var(--bg-surface-elevated);
@@ -694,6 +698,7 @@ input:checked + .slider:before {
 .sorting-toggle.expanded,
 .rules-toggle.expanded,
 .blacklist-toggle.expanded,
+.tab-discard-toggle.expanded,
 .advanced-toggle.expanded,
 .ai-toggle.expanded {
   border-bottom: 1px solid var(--border-subtle);
@@ -703,6 +708,7 @@ input:checked + .slider:before {
 .sorting-toggle .noselect,
 .rules-toggle .noselect,
 .blacklist-toggle .noselect,
+.tab-discard-toggle .noselect,
 .advanced-toggle .noselect,
 .ai-toggle .noselect {
   flex: 1;
@@ -725,6 +731,7 @@ input:checked + .slider:before {
 .sorting-toggle.expanded .up-arrow,
 .rules-toggle.expanded .up-arrow,
 .blacklist-toggle.expanded .up-arrow,
+.tab-discard-toggle.expanded .up-arrow,
 .advanced-toggle.expanded .up-arrow,
 .ai-toggle.expanded .up-arrow {
   transform: rotate(180deg);
@@ -734,6 +741,7 @@ input:checked + .slider:before {
 .sorting-content,
 .rules-content,
 .blacklist-content,
+.tab-discard-content,
 .advanced-content,
 .ai-content {
   display: none;
@@ -746,6 +754,7 @@ input:checked + .slider:before {
 .sorting-content.expanded,
 .rules-content.expanded,
 .blacklist-content.expanded,
+.tab-discard-content.expanded,
 .advanced-content.expanded,
 .ai-content.expanded {
   display: flex;
@@ -764,13 +773,64 @@ input:checked + .slider:before {
 
 /* Custom Rules UI */
 .rules-list,
-.blacklist-list {
+.blacklist-list,
+.tab-discard-list {
   max-height: 220px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 8px;
   padding-right: 2px;
+}
+
+.tab-discard-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+}
+
+.tab-discard-input-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.tab-discard-domain-input {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-medium);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
+.tab-discard-item-domain {
+  font-family: monospace;
+  font-size: 12px;
+  color: var(--text-primary);
+  word-break: break-all;
+}
+
+.tab-discard-delete-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.tab-discard-delete-btn:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
 }
 
 .rule-item {
@@ -1475,9 +1535,38 @@ input:checked + .slider:before {
   background: rgba(138, 180, 248, 0.22);
 }
 
+.ai-suggestions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.suggestion-apply-all-btn {
+  background: var(--bg-surface-elevated);
+  color: var(--gemini-green);
+  border: 1px solid rgba(129, 201, 149, 0.4);
+  background: rgba(129, 201, 149, 0.12);
+  border-radius: var(--radius-sm);
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.suggestion-apply-all-btn:hover:not(:disabled) {
+  background: rgba(129, 201, 149, 0.22);
+  border-color: var(--gemini-green);
+}
+
+.suggestion-apply-all-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .suggestion-dismiss-btn {
-  display: block;
-  margin-left: auto;
   padding: 2px 8px;
   font-size: 11px;
   color: var(--text-muted);

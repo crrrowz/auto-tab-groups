@@ -34,7 +34,7 @@ FROM base AS deps
 WORKDIR /workspace/app
 
 # Copy dependency specifications first to maximize layer cache efficiency
-COPY --chown=appuser:appgroup package.json bun.lock ./
+COPY --chown=appuser:appgroup package.json bun.lock* package-lock.json* ./
 
 # Install all dependencies (including devDependencies required for building/testing)
 # Using BuildKit cache mount to accelerate repeated builds
