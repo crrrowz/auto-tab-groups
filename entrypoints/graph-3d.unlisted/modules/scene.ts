@@ -121,7 +121,7 @@ export function setupViewportResize(graphInstance: any): () => void {
     graphInstance.height(height)
 
     const camera = graphInstance.camera()
-    if (camera && camera.isPerspectiveCamera) {
+    if (camera?.isPerspectiveCamera) {
       camera.aspect = width / height
       camera.updateProjectionMatrix()
     }

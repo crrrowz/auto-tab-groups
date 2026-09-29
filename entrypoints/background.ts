@@ -971,9 +971,8 @@ export default defineBackground(() => {
 
           case "applySuggestion": {
             if (
-              !msg.suggestion ||
-              !msg.suggestion.groupName ||
-              !Array.isArray(msg.suggestion.tabs)
+              !msg.suggestion?.groupName ||
+              !Array.isArray(msg.suggestion?.tabs)
             ) {
               result = { success: false, error: "Invalid suggestion data" }
               break

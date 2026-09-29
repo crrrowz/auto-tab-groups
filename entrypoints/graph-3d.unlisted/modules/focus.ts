@@ -48,7 +48,7 @@ export class LevelOfDetailManager {
             targetGroupOpacity = Math.max(0.45, 1.0 - (dist - 600) / 500)
           }
 
-          if (userData && userData.materials) {
+          if (userData?.materials) {
             for (const mat of userData.materials) {
               if ("opacity" in mat) {
                 mat.opacity = targetGroupOpacity
@@ -77,7 +77,7 @@ export class LevelOfDetailManager {
               userData.labelSprite.material.opacity = 1.0
             }
           }
-          if (userData && userData.materials) {
+          if (userData?.materials) {
             for (const mat of userData.materials) {
               if ("opacity" in mat) mat.opacity = 1.0
             }
@@ -128,7 +128,7 @@ export class LevelOfDetailManager {
             }
           }
 
-          if (userData && userData.materials) {
+          if (userData?.materials) {
             for (const mat of userData.materials) {
               if ("opacity" in mat && mat !== userData?.labelSprite?.material) {
                 mat.opacity = alpha

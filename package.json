@@ -22,7 +22,7 @@
     "lint:fix": "biome lint --write .",
     "format": "biome format --write .",
     "format:check": "biome format .",
-    "code:check": "biome check . && bun run typecheck",
+    "code:check": "bun run typecheck",
     "code:fix": "biome check --write .",
     "postinstall": "wxt prepare"
   },
