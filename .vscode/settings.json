@@ -1,0 +1,37 @@
+{
+  "cSpell.words": [
+    "badmozilla",
+    "basedomain",
+    "biomejs",
+    "codepen",
+    "newtab",
+    "nytimes",
+    "Qwen",
+    "SLDS",
+    "SmolLM",
+    "tabgroup",
+    "techcrunch",
+    "tiktok",
+    "webllm"
+  ],
+  "snyk.advanced.autoSelectOrganization": true,
+  "editor.defaultFormatter": "biomejs.biome",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "quickfix.biome": "explicit",
+    "source.organizeImports.biome": "explicit"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "snyk.advanced.organization": "6a8af82f-bfb7-401e-8baa-27b0d74276e3"
+}

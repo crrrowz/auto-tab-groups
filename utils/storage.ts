@@ -1,0 +1,399 @@
+/**
+ * Storage utilities using WXT's storage API
+ * Provides type-safe access to browser.storage.local
+ */
+
+import { storage } from "wxt/utils/storage"
+import type {
+  AiProvider,
+  CachedAiSuggestions,
+  CustomAiModel,
+  CustomRulesMapping,
+  GroupByMode,
+  GroupColorMapping,
+  RuleMatchingMode,
+  SortDirection,
+  StorageSchema,
+  TabGroupColor,
+  UserLocale
+} from "../types"
+import { DEFAULT_STATE } from "../types/storage"
+
+/**
+ * Storage items with default values
+ */
+export const autoGroupingEnabled = storage.defineItem<boolean>("local:autoGroupingEnabled", {
+  fallback: DEFAULT_STATE.autoGroupingEnabled
+})
+
+export const groupNewTabs = storage.defineItem<boolean>("local:groupNewTabs", {
+  fallback: DEFAULT_STATE.groupNewTabs
+})
+
+export const systemGroupEnabled = storage.defineItem<boolean>("local:systemGroupEnabled", {
+  fallback: DEFAULT_STATE.systemGroupEnabled
+})
+
+export const protectedGroupTitles = storage.defineItem<string[]>("local:protectedGroupTitles", {
+  fallback: DEFAULT_STATE.protectedGroupTitles
+})
+
+export const deferGroupingUntilSeen = storage.defineItem<boolean>("local:deferGroupingUntilSeen", {
+  fallback: DEFAULT_STATE.deferGroupingUntilSeen
+})
+
+export const groupByMode = storage.defineItem<GroupByMode>("local:groupByMode", {
+  fallback: DEFAULT_STATE.groupByMode
+})
+
+export const customRules = storage.defineItem<CustomRulesMapping>("local:customRules", {
+  fallback: DEFAULT_STATE.customRules
+})
+
+export const ruleMatchingMode = storage.defineItem<RuleMatchingMode>("local:ruleMatchingMode", {
+  fallback: DEFAULT_STATE.ruleMatchingMode
+})
+
+export const groupColorMapping = storage.defineItem<GroupColorMapping>("local:groupColorMapping", {
+  fallback: DEFAULT_STATE.groupColorMapping
+})
+
+export const minimumTabsForGroup = storage.defineItem<number>("local:minimumTabsForGroup", {
+  fallback: DEFAULT_STATE.minimumTabsForGroup
+})
+
+export const autoCollapseEnabled = storage.defineItem<boolean>("local:autoCollapseEnabled", {
+  fallback: DEFAULT_STATE.autoCollapseEnabled
+})
+
+export const autoCollapseDelayMs = storage.defineItem<number>("local:autoCollapseDelayMs", {
+  fallback: DEFAULT_STATE.autoCollapseDelayMs
+})
+
+export const aiEnabled = storage.defineItem<boolean>("local:aiEnabled", {
+  fallback: DEFAULT_STATE.aiEnabled
+})
+
+export const aiProvider = storage.defineItem<AiProvider>("local:aiProvider", {
+  fallback: DEFAULT_STATE.aiProvider
+})
+
+export const aiModelId = storage.defineItem<string>("local:aiModelId", {
+  fallback: DEFAULT_STATE.aiModelId
+})
+
+export const customAiModels = storage.defineItem<CustomAiModel[]>("local:customAiModels", {
+  fallback: DEFAULT_STATE.customAiModels
+})
+
+export const aiSimilarityThreshold = storage.defineItem<number>("local:aiSimilarityThreshold", {
+  fallback: DEFAULT_STATE.aiSimilarityThreshold
+})
+
+export const openTabNextToCurrent = storage.defineItem<boolean>("local:openTabNextToCurrent", {
+  fallback: DEFAULT_STATE.openTabNextToCurrent
+})
+
+export const sortGroupsAlphabetically = storage.defineItem<boolean>(
+  "local:sortGroupsAlphabetically",
+  { fallback: DEFAULT_STATE.sortGroupsAlphabetically }
+)
+
+export const sortGroupsDirection = storage.defineItem<SortDirection>("local:sortGroupsDirection", {
+  fallback: DEFAULT_STATE.sortGroupsDirection
+})
+
+export const indexGroupTitles = storage.defineItem<boolean>("local:indexGroupTitles", {
+  fallback: DEFAULT_STATE.indexGroupTitles
+})
+
+export const hideContextMenu = storage.defineItem<boolean>("local:hideContextMenu", {
+  fallback: DEFAULT_STATE.hideContextMenu
+})
+
+export const userLocale = storage.defineItem<UserLocale>("local:userLocale", {
+  fallback: DEFAULT_STATE.userLocale
+})
+
+export const aiCustomEndpoint = storage.defineItem<string>("local:aiCustomEndpoint", {
+  fallback: DEFAULT_STATE.aiCustomEndpoint
+})
+
+export const aiCustomApiKey = storage.defineItem<string>("local:aiCustomApiKey", {
+  fallback: DEFAULT_STATE.aiCustomApiKey
+})
+
+export const aiCustomModel = storage.defineItem<string>("local:aiCustomModel", {
+  fallback: DEFAULT_STATE.aiCustomModel
+})
+
+export const laterGroupName = storage.defineItem<string>("local:laterGroupName", {
+  fallback: DEFAULT_STATE.laterGroupName
+})
+
+export const lockLaterGroupFirstTab = storage.defineItem<boolean>(
+  "local:lockLaterGroupFirstTab",
+  { fallback: DEFAULT_STATE.lockLaterGroupFirstTab }
+)
+
+export const laterGroupLeaderTabId = storage.defineItem<number | null>(
+  "local:laterGroupLeaderTabId",
+  { fallback: DEFAULT_STATE.laterGroupLeaderTabId }
+)
+
+/**
+ * Transient state for interactive tab comparison session
+ */
+export interface ComparisonSessionState {
+  active: boolean
+  sourceTabId: number | null
+  startedAt: number | null
+  targetTabId?: number | null
+  comparisonGroupId?: number | null
+  sourceParentGroupId?: number | null
+  targetParentGroupId?: number | null
+}
+
+export const comparisonSession = storage.defineItem<ComparisonSessionState>(
+  "session:comparisonSession",
+  {
+    fallback: {
+      active: false,
+      sourceTabId: null,
+      startedAt: null,
+      targetTabId: null,
+      comparisonGroupId: null,
+      sourceParentGroupId: null,
+      targetParentGroupId: null
+    }
+  }
+)
+
+/**
+ * Cached AI suggestions (survives popup reopens, not a user setting)
+ */
+export const cachedAiSuggestions = storage.defineItem<CachedAiSuggestions | null>(
+  "local:cachedAiSuggestions",
+  { fallback: null }
+)
+
+/**
+ * Load all storage values at once
+ */
+export async function loadAllStorage(): Promise<StorageSchema> {
+  const [
+    autoGroupingEnabledValue,
+    groupNewTabsValue,
+    systemGroupEnabledValue,
+    groupByModeValue,
+    customRulesValue,
+    ruleMatchingModeValue,
+    groupColorMappingValue,
+    minimumTabsForGroupValue,
+    autoCollapseEnabledValue,
+    autoCollapseDelayMsValue,
+    aiEnabledValue,
+    aiProviderValue,
+    aiModelIdValue,
+    customAiModelsValue,
+    aiSimilarityThresholdValue,
+    openTabNextToCurrentValue,
+    sortGroupsAlphabeticallyValue,
+    sortGroupsDirectionValue,
+    indexGroupTitlesValue,
+    hideContextMenuValue,
+    userLocaleValue,
+    protectedGroupTitlesValue,
+    deferGroupingUntilSeenValue,
+    aiCustomEndpointValue,
+    aiCustomApiKeyValue,
+    aiCustomModelValue,
+    laterGroupNameValue,
+    lockLaterGroupFirstTabValue,
+    laterGroupLeaderTabIdValue
+  ] = await Promise.all([
+    autoGroupingEnabled.getValue(),
+    groupNewTabs.getValue(),
+    systemGroupEnabled.getValue(),
+    groupByMode.getValue(),
+    customRules.getValue(),
+    ruleMatchingMode.getValue(),
+    groupColorMapping.getValue(),
+    minimumTabsForGroup.getValue(),
+    autoCollapseEnabled.getValue(),
+    autoCollapseDelayMs.getValue(),
+    aiEnabled.getValue(),
+    aiProvider.getValue(),
+    aiModelId.getValue(),
+    customAiModels.getValue(),
+    aiSimilarityThreshold.getValue(),
+    openTabNextToCurrent.getValue(),
+    sortGroupsAlphabetically.getValue(),
+    sortGroupsDirection.getValue(),
+    indexGroupTitles.getValue(),
+    hideContextMenu.getValue(),
+    userLocale.getValue(),
+    protectedGroupTitles.getValue(),
+    deferGroupingUntilSeen.getValue(),
+    aiCustomEndpoint.getValue(),
+    aiCustomApiKey.getValue(),
+    aiCustomModel.getValue(),
+    laterGroupName.getValue(),
+    lockLaterGroupFirstTab.getValue(),
+    laterGroupLeaderTabId.getValue()
+  ])
+
+  return {
+    autoGroupingEnabled: autoGroupingEnabledValue,
+    groupNewTabs: groupNewTabsValue,
+    systemGroupEnabled: systemGroupEnabledValue,
+    groupByMode: groupByModeValue,
+    customRules: customRulesValue,
+    ruleMatchingMode: ruleMatchingModeValue,
+    groupColorMapping: groupColorMappingValue,
+    minimumTabsForGroup: minimumTabsForGroupValue,
+    autoCollapseEnabled: autoCollapseEnabledValue,
+    autoCollapseDelayMs: autoCollapseDelayMsValue,
+    aiEnabled: aiEnabledValue,
+    aiProvider: aiProviderValue,
+    aiModelId: aiModelIdValue,
+    customAiModels: customAiModelsValue,
+    aiSimilarityThreshold: aiSimilarityThresholdValue,
+    openTabNextToCurrent: openTabNextToCurrentValue,
+    sortGroupsAlphabetically: sortGroupsAlphabeticallyValue,
+    sortGroupsDirection: sortGroupsDirectionValue,
+    indexGroupTitles: indexGroupTitlesValue,
+    hideContextMenu: hideContextMenuValue,
+    userLocale: userLocaleValue,
+    protectedGroupTitles: protectedGroupTitlesValue,
+    deferGroupingUntilSeen: deferGroupingUntilSeenValue,
+    aiCustomEndpoint: aiCustomEndpointValue,
+    aiCustomApiKey: aiCustomApiKeyValue,
+    aiCustomModel: aiCustomModelValue,
+    laterGroupName: laterGroupNameValue,
+    lockLaterGroupFirstTab: lockLaterGroupFirstTabValue,
+    laterGroupLeaderTabId: laterGroupLeaderTabIdValue
+  }
+}
+
+/**
+ * Save all storage values at once
+ */
+export async function saveAllStorage(data: Partial<StorageSchema>): Promise<void> {
+  const promises: Promise<void>[] = []
+
+  if (data.autoGroupingEnabled !== undefined) {
+    promises.push(autoGroupingEnabled.setValue(data.autoGroupingEnabled))
+  }
+  if (data.groupNewTabs !== undefined) {
+    promises.push(groupNewTabs.setValue(data.groupNewTabs))
+  }
+  if (data.systemGroupEnabled !== undefined) {
+    promises.push(systemGroupEnabled.setValue(data.systemGroupEnabled))
+  }
+  if (data.groupByMode !== undefined) {
+    promises.push(groupByMode.setValue(data.groupByMode))
+  }
+  if (data.customRules !== undefined) {
+    promises.push(customRules.setValue(data.customRules))
+  }
+  if (data.ruleMatchingMode !== undefined) {
+    promises.push(ruleMatchingMode.setValue(data.ruleMatchingMode))
+  }
+  if (data.groupColorMapping !== undefined) {
+    promises.push(groupColorMapping.setValue(data.groupColorMapping))
+  }
+  if (data.minimumTabsForGroup !== undefined) {
+    promises.push(minimumTabsForGroup.setValue(data.minimumTabsForGroup))
+  }
+  if (data.autoCollapseEnabled !== undefined) {
+    promises.push(autoCollapseEnabled.setValue(data.autoCollapseEnabled))
+  }
+  if (data.autoCollapseDelayMs !== undefined) {
+    promises.push(autoCollapseDelayMs.setValue(data.autoCollapseDelayMs))
+  }
+  if (data.aiEnabled !== undefined) {
+    promises.push(aiEnabled.setValue(data.aiEnabled))
+  }
+  if (data.aiProvider !== undefined) {
+    promises.push(aiProvider.setValue(data.aiProvider))
+  }
+  if (data.aiModelId !== undefined) {
+    promises.push(aiModelId.setValue(data.aiModelId))
+  }
+  if (data.customAiModels !== undefined) {
+    promises.push(customAiModels.setValue(data.customAiModels))
+  }
+  if (data.aiSimilarityThreshold !== undefined) {
+    promises.push(aiSimilarityThreshold.setValue(data.aiSimilarityThreshold))
+  }
+  if (data.openTabNextToCurrent !== undefined) {
+    promises.push(openTabNextToCurrent.setValue(data.openTabNextToCurrent))
+  }
+  if (data.sortGroupsAlphabetically !== undefined) {
+    promises.push(sortGroupsAlphabetically.setValue(data.sortGroupsAlphabetically))
+  }
+  if (data.sortGroupsDirection !== undefined) {
+    promises.push(sortGroupsDirection.setValue(data.sortGroupsDirection))
+  }
+  if (data.indexGroupTitles !== undefined) {
+    promises.push(indexGroupTitles.setValue(data.indexGroupTitles))
+  }
+  if (data.hideContextMenu !== undefined) {
+    promises.push(hideContextMenu.setValue(data.hideContextMenu))
+  }
+  if (data.userLocale !== undefined) {
+    promises.push(userLocale.setValue(data.userLocale))
+  }
+  if (data.protectedGroupTitles !== undefined) {
+    promises.push(protectedGroupTitles.setValue(data.protectedGroupTitles))
+  }
+  if (data.deferGroupingUntilSeen !== undefined) {
+    promises.push(deferGroupingUntilSeen.setValue(data.deferGroupingUntilSeen))
+  }
+  if (data.aiCustomEndpoint !== undefined) {
+    promises.push(aiCustomEndpoint.setValue(data.aiCustomEndpoint))
+  }
+  if (data.aiCustomApiKey !== undefined) {
+    promises.push(aiCustomApiKey.setValue(data.aiCustomApiKey))
+  }
+  if (data.aiCustomModel !== undefined) {
+    promises.push(aiCustomModel.setValue(data.aiCustomModel))
+  }
+  if (data.laterGroupName !== undefined) {
+    promises.push(laterGroupName.setValue(data.laterGroupName))
+  }
+  if (data.lockLaterGroupFirstTab !== undefined) {
+    promises.push(lockLaterGroupFirstTab.setValue(data.lockLaterGroupFirstTab))
+  }
+  if (data.laterGroupLeaderTabId !== undefined) {
+    promises.push(laterGroupLeaderTabId.setValue(data.laterGroupLeaderTabId))
+  }
+  await Promise.all(promises)
+}
+
+/**
+ * Get a specific group's saved color
+ */
+export async function getGroupColor(groupTitle: string): Promise<string | null> {
+  const mapping = await groupColorMapping.getValue()
+  return mapping[groupTitle] || null
+}
+
+/**
+ * Update a specific group's color
+ */
+export async function updateGroupColor(groupTitle: string, color: TabGroupColor): Promise<void> {
+  const mapping = await groupColorMapping.getValue()
+  const updatedMapping = { ...mapping, [groupTitle]: color }
+  await groupColorMapping.setValue(updatedMapping)
+}
+
+/**
+ * Clear a specific group's saved color
+ */
+export async function clearGroupColor(groupTitle: string): Promise<void> {
+  const mapping = await groupColorMapping.getValue()
+  const { [groupTitle]: _, ...rest } = mapping
+  await groupColorMapping.setValue(rest)
+}

@@ -1,0 +1,1062 @@
+import { describe, expect, it } from "vitest"
+import type { PatternType } from "../utils/UrlPatternMatcher"
+import { PATTERN_TYPES, urlPatternMatcher } from "../utils/UrlPatternMatcher"
+
+describe("UrlPatternMatcher", () => {
+  describe("detectPatternType", () => {
+    it("should detect simple wildcard pattern (no special syntax)", () => {
+      expect(urlPatternMatcher.detectPatternType("*.example.com")).toBe(
+        PATTERN_TYPES.SIMPLE_WILDCARD
+      )
+    })
+
+    it("should detect segment extraction pattern", () => {
+      expect(urlPatternMatcher.detectPatternType("{subdomain}.example.com")).toBe(
+        PATTERN_TYPES.SEGMENT_EXTRACTION
+      )
+    })
+
+    it("should detect regex pattern", () => {
+      expect(urlPatternMatcher.detectPatternType("/example\\.com/")).toBe(PATTERN_TYPES.REGEX)
+    })
+
+    it("should default to simple wildcard for plain domain", () => {
+      expect(urlPatternMatcher.detectPatternType("example.com")).toBe(PATTERN_TYPES.SIMPLE_WILDCARD)
+    })
+  })
+
+  describe("match - simple wildcard", () => {
+    it("should match exact domain", () => {
+      const result = urlPatternMatcher.match("https://example.com", "example.com")
+      expect(result.matched).toBe(true)
+    })
+
+    it("should match domain with www", () => {
+      const result = urlPatternMatcher.match("https://www.example.com", "www.example.com")
+      expect(result.matched).toBe(true)
+    })
+
+    it("should match wildcard subdomain", () => {
+      const result = urlPatternMatcher.match("https://blog.example.com", "*.example.com")
+      expect(result.matched).toBe(true)
+    })
+
+    it("should match wildcard subdomain with www", () => {
+      const result = urlPatternMatcher.match("https://www.example.com", "*.example.com")
+      expect(result.matched).toBe(true)
+    })
+
+    it("should not match different domain", () => {
+      const result = urlPatternMatcher.match("https://different.com", "example.com")
+      expect(result.matched).toBe(false)
+    })
+
+    it("should return group name from options", () => {
+      const result = urlPatternMatcher.match("https://example.com", "example.com", {
+        ruleName: "My Rule"
+      })
+      expect(result.matched).toBe(true)
+      expect(result.groupName).toBe("My Rule")
+    })
+
+    it("should handle URL with path", () => {
+      const result = urlPatternMatcher.match("https://example.com/path/to/page", "example.com")
+      expect(result.matched).toBe(true)
+    })
+
+    it("should handle URL with query string", () => {
+      const result = urlPatternMatcher.match("https://example.com?foo=bar", "example.com")
+      expect(result.matched).toBe(true)
+    })
+
+    it("should handle empty URL", () => {
+      const result = urlPatternMatcher.match("", "example.com")
+      expect(result.matched).toBe(false)
+    })
+
+    it("should handle empty pattern", () => {
+      const result = urlPatternMatcher.match("https://example.com", "")
+      expect(result.matched).toBe(false)
+    })
+
+    it("should be case-insensitive", () => {
+      const result = urlPatternMatcher.match("https://EXAMPLE.COM", "example.com")
+      expect(result.matched).toBe(true)
+    })
+  })
+
+  describe("match - segment extraction", () => {
+    it("should extract subdomain", () => {
+      const result = urlPatternMatcher.match("https://blog.example.com", "{subdomain}.example.com")
+      expect(result.matched).toBe(true)
+      expect(result.extractedValues.subdomain).toBe("blog")
+    })
+
+    it("should extract and use in group name", () => {
+      const result = urlPatternMatcher.match(
+        "https://blog.example.com",
+        "{subdomain}.example.com",
+        {
+          ruleName: "Example Sites"
+        }
+      )
+      expect(result.matched).toBe(true)
+      expect(result.extractedValues.subdomain).toBe("blog")
+    })
+
+    it("should extract multiple segments", () => {
+      const result = urlPatternMatcher.match(
+        "https://user.blog.example.com",
+        "{user}.{section}.example.com"
+      )
+      expect(result.matched).toBe(true)
+      expect(result.extractedValues.user).toBe("user")
+      expect(result.extractedValues.section).toBe("blog")
+    })
+
+    it("should not match if segments dont align", () => {
+      const result = urlPatternMatcher.match("https://example.com", "{subdomain}.example.com")
+      expect(result.matched).toBe(false)
+    })
+  })
+
+  describe("match - regex patterns", () => {
+    it("should match with regex pattern", () => {
+      const result = urlPatternMatcher.match("https://example.com", "/example\\.com/")
+      expect(result.matched).toBe(true)
+    })
+
+    it("should not match with non-matching regex", () => {
+      const result = urlPatternMatcher.match("https://different.com", "/example\\.com/")
+      expect(result.matched).toBe(false)
+    })
+
+    it("should handle regex with character class", () => {
+      const result = urlPatternMatcher.match(
+        "https://test123.example.com",
+        "/test[0-9]+\\.example\\.com/"
+      )
+      expect(result.matched).toBe(true)
+    })
+  })
+
+  describe("validatePattern", () => {
+    it("should validate simple domain pattern", () => {
+      const result = urlPatternMatcher.validatePattern("example.com")
+      expect(result.isValid).toBe(true)
+    })
+
+    it("should validate wildcard pattern", () => {
+      const result = urlPatternMatcher.validatePattern("*.example.com")
+      expect(result.isValid).toBe(true)
+    })
+
+    it("should validate segment extraction pattern", () => {
+      const result = urlPatternMatcher.validatePattern("{subdomain}.example.com")
+      expect(result.isValid).toBe(true)
+    })
+
+    it("should reject empty pattern", () => {
+      const result = urlPatternMatcher.validatePattern("")
+      expect(result.isValid).toBe(false)
+    })
+
+    it("should reject pattern with only whitespace", () => {
+      const result = urlPatternMatcher.validatePattern("   ")
+      expect(result.isValid).toBe(false)
+    })
+
+    it("should reject null pattern", () => {
+      const result = urlPatternMatcher.validatePattern(null as unknown as string)
+      expect(result.isValid).toBe(false)
+      expect(result.error).toBe("Pattern must be a non-empty string")
+    })
+
+    it("should reject pattern exceeding max length", () => {
+      const longPattern = "a".repeat(501)
+      const result = urlPatternMatcher.validatePattern(longPattern)
+      expect(result.isValid).toBe(false)
+      expect(result.error).toBe("Pattern too long (max 500 characters)")
+    })
+
+    it("should reject pattern with too many asterisks", () => {
+      const result = urlPatternMatcher.validatePattern("***.example.com")
+      expect(result.isValid).toBe(false)
+      expect(result.error).toContain("too many asterisks")
+    })
+
+    it("should reject domain pattern with invalid characters", () => {
+      const result = urlPatternMatcher.validatePattern("example<script>.com")
+      expect(result.isValid).toBe(false)
+      expect(result.error).toContain("invalid characters")
+    })
+
+    it("should reject path pattern with invalid characters", () => {
+      const result = urlPatternMatcher.validatePattern("example.com/<script>")
+      expect(result.isValid).toBe(false)
+      expect(result.error).toContain("invalid characters")
+    })
+
+    it("should validate pattern with path", () => {
+      const result = urlPatternMatcher.validatePattern("example.com/api/*")
+      expect(result.isValid).toBe(true)
+    })
+
+    it("should validate regex pattern", () => {
+      const result = urlPatternMatcher.validatePattern("/example\\.com/")
+      expect(result.isValid).toBe(true)
+      expect(result.type).toBe(PATTERN_TYPES.REGEX)
+    })
+
+    it("should reject empty regex pattern", () => {
+      const result = urlPatternMatcher.validatePattern("//")
+      expect(result.isValid).toBe(false)
+      expect(result.error).toBe("Regex pattern cannot be empty")
+    })
+
+    it("should reject invalid regex pattern", () => {
+      const result = urlPatternMatcher.validatePattern("/[invalid/")
+      expect(result.isValid).toBe(false)
+      expect(result.error).toContain("Invalid regex")
+    })
+
+    it("should reject segment pattern with duplicate variable names", () => {
+      const result = urlPatternMatcher.validatePattern("{sub}.{sub}.example.com")
+      expect(result.isValid).toBe(false)
+      expect(result.error).toBe("Duplicate variable names in pattern")
+    })
+
+    it("should reject segment pattern with invalid variable name", () => {
+      const result = urlPatternMatcher.validatePattern("{123invalid}.example.com")
+      expect(result.isValid).toBe(false)
+      expect(result.error).toContain("Invalid variable name")
+    })
+
+    it("should reject pattern with no variables (just open brace)", () => {
+      // Pattern with { but no closing } is treated as simple wildcard with invalid chars
+      const result = urlPatternMatcher.validatePattern("{unclosed.example.com")
+      expect(result.isValid).toBe(false)
+    })
+  })
+
+  describe("match - TLD wildcard (double asterisk)", () => {
+    it("should match google.** with google.com", () => {
+      const result = urlPatternMatcher.match("https://google.com", "google.**")
+      expect(result.matched).toBe(true)
+    })
+
+    it("should match google.** with google.co.uk", () => {
+      const result = urlPatternMatcher.match("https://google.co.uk", "google.**")
+      expect(result.matched).toBe(true)
+    })
+
+    it("should not match google.** with notgoogle.com", () => {
+      const result = urlPatternMatcher.match("https://notgoogle.com", "google.**")
+      expect(result.matched).toBe(false)
+    })
+
+    it("should match a combined *.** pattern", () => {
+      // Any subdomain, any TLD — the form docs have always advertised
+      expect(urlPatternMatcher.match("https://mail.google.com", "*.google.**").matched).toBe(true)
+      expect(urlPatternMatcher.match("https://docs.google.co.uk", "*.google.**").matched).toBe(true)
+      expect(
+        urlPatternMatcher.match("https://docs.google.com/forms", "*.google.**/forms").matched
+      ).toBe(true)
+    })
+
+    it("should not match a combined *.** pattern on another host", () => {
+      expect(urlPatternMatcher.match("https://mail.notgoogle.com", "*.google.**").matched).toBe(
+        false
+      )
+      expect(
+        urlPatternMatcher.match("https://docs.google.com/sheets", "*.google.**/forms").matched
+      ).toBe(false)
+    })
+
+    it("should still require a subdomain for a *. prefix", () => {
+      // "*.google.com" matches the bare host as a kindness; "**" stays strict,
+      // because "google.**" is already the way to say "no subdomain"
+      expect(urlPatternMatcher.match("https://google.com", "*.google.**").matched).toBe(false)
+    })
+  })
+
+  describe("match - middle wildcard", () => {
+    it("should match middle wildcard pattern", () => {
+      const result = urlPatternMatcher.match(
+        "https://prefix-test.example.com",
+        "prefix-*.example.com"
+      )
+      expect(result.matched).toBe(true)
+    })
+
+    it("should not match middle wildcard with wrong suffix", () => {
+      const result = urlPatternMatcher.match(
+        "https://prefix-test.other.com",
+        "prefix-*.example.com"
+      )
+      expect(result.matched).toBe(false)
+    })
+  })
+
+  describe("match - path patterns", () => {
+    it("should match URL with path pattern", () => {
+      const result = urlPatternMatcher.match("https://example.com/api/users", "example.com/api")
+      expect(result.matched).toBe(true)
+    })
+
+    it("should not match URL with wrong path", () => {
+      const result = urlPatternMatcher.match("https://example.com/other/users", "example.com/api")
+      expect(result.matched).toBe(false)
+    })
+
+    it("should match path with ** wildcard", () => {
+      const result = urlPatternMatcher.match(
+        "https://example.com/api/v1/users",
+        "example.com/api/**/users"
+      )
+      expect(result.matched).toBe(true)
+    })
+  })
+
+  describe("match - comprehensive path patterns", () => {
+    // Basic path patterns
+    it("should match URL with exact path prefix", () => {
+      const result = urlPatternMatcher.match("https://example.com/api/users", "example.com/api")
+      expect(result.matched).toBe(true)
+    })
+
+    it("should match URL with path and query string", () => {
+      const result = urlPatternMatcher.match("https://example.com/api?key=123", "example.com/api")
+      expect(result.matched).toBe(true)
+    })
+
+    it("should NOT match URL with different path", () => {
+      const result = urlPatternMatcher.match("https://example.com/admin", "example.com/api")
+      expect(result.matched).toBe(false)
+    })
+
+    // Deep path patterns
+    it("should match deep path patterns", () => {
+      const result = urlPatternMatcher.match(
+        "https://example.com/api/v2/users/123",
+        "example.com/api/v2"
+      )
+      expect(result.matched).toBe(true)
+    })
+
+    it("should match exact deep path", () => {
+      const result = urlPatternMatcher.match(
+        "https://example.com/admin/settings/profile",
+        "example.com/admin/settings"
+      )
+      expect(result.matched).toBe(true)
+    })
+
+    // Wildcard in path
+    it("should match path with single wildcard segment", () => {
+      const result = urlPatternMatcher.match(
+        "https://example.com/users/john/profile",
+        "example.com/users/*/profile"
+      )
+      expect(result.matched).toBe(true)
+    })
+
+    it("should match path with multiple segments after wildcard", () => {
+      const result = urlPatternMatcher.match(
+        "https://example.com/a/b/c/d/target",
+        "example.com/**/target"
+      )
+      expect(result.matched).toBe(true)
+    })
+
+    // Real-world examples from user feedback
+    it("should match google.com/ai path (user feedback row 284)", () => {
+      const result = urlPatternMatcher.match("https://google.com/ai/studio", "google.com/ai")
+      expect(result.matched).toBe(true)
+    })
+
+    it("should match google.com/ai with deep path", () => {
+      const result = urlPatternMatcher.match("https://google.com/ai/gemini/app", "google.com/ai")
+      expect(result.matched).toBe(true)
+    })
+
+    it("should match reddit.com/r/subreddit path with wildcard (user feedback row 284)", () => {
+      // Note: Use *.reddit.com to match www.reddit.com
+      const result = urlPatternMatcher.match(
+        "https://www.reddit.com/r/runescape/comments/123",
+        "*.reddit.com/r/runescape"
+      )
+      expect(result.matched).toBe(true)
+    })
+
+    it("should match reddit.com path without www", () => {
+      const result = urlPatternMatcher.match(
+        "https://reddit.com/r/runescape/comments/123",
+        "reddit.com/r/runescape"
+      )
+      expect(result.matched).toBe(true)
+    })
+
+    it("should NOT match reddit.com with different subreddit", () => {
+      const result = urlPatternMatcher.match(
+        "https://www.reddit.com/r/gaming/comments/123",
+        "*.reddit.com/r/runescape"
+      )
+      expect(result.matched).toBe(false)
+    })
+
+    // GitHub paths
+    it("should match github.com/user/repo path", () => {
+      const result = urlPatternMatcher.match(
+        "https://github.com/nitzanpap/auto-tab-groups/issues",
+        "github.com/nitzanpap/auto-tab-groups"
+      )
+      expect(result.matched).toBe(true)
+    })
+
+    // AWS Console paths
+    it("should match AWS console paths", () => {
+      const result = urlPatternMatcher.match(
+        "https://console.aws.amazon.com/ec2/home?region=us-east-1",
+        "console.aws.amazon.com/ec2"
+      )
+      expect(result.matched).toBe(true)
+    })
+
+    // Path with hash/fragment
+    it("should match URL with hash fragment", () => {
+      const result = urlPatternMatcher.match(
+        "https://example.com/docs/api#section",
+        "example.com/docs"
+      )
+      expect(result.matched).toBe(true)
+    })
+
+    // Edge cases
+    it("should handle trailing slash in URL", () => {
+      const result = urlPatternMatcher.match("https://example.com/api/", "example.com/api")
+      expect(result.matched).toBe(true)
+    })
+
+    it("should handle trailing slash in pattern", () => {
+      const result = urlPatternMatcher.match("https://example.com/api/users", "example.com/api/")
+      expect(result.matched).toBe(true)
+    })
+  })
+
+  describe("match - segment extraction with path", () => {
+    it("should extract from URL with path", () => {
+      const result = urlPatternMatcher.match(
+        "https://user123.example.com/dashboard",
+        "{user}.example.com/dashboard"
+      )
+      expect(result.matched).toBe(true)
+      expect(result.extractedValues.user).toBe("user123")
+    })
+  })
+
+  describe("match - regex with groups", () => {
+    it("should extract groups from regex pattern", () => {
+      const result = urlPatternMatcher.match(
+        "https://user123.example.com",
+        "/(\\w+)\\.example\\.com/"
+      )
+      expect(result.matched).toBe(true)
+      expect(result.extractedValues.group1).toBe("user123")
+    })
+
+    it("should use first group as group name", () => {
+      const result = urlPatternMatcher.match(
+        "https://myproject.example.com",
+        "/(\\w+)\\.example\\.com/"
+      )
+      expect(result.matched).toBe(true)
+      expect(result.groupName).toBe("myproject")
+    })
+  })
+
+  describe("match - group name generation", () => {
+    it("should use groupNameTemplate when provided", () => {
+      const result = urlPatternMatcher.match("https://blog.example.com", "{section}.example.com", {
+        groupNameTemplate: "Site: {section}"
+      })
+      expect(result.matched).toBe(true)
+      expect(result.groupName).toBe("Site: blog")
+    })
+
+    it("should fall back to ruleName when no template", () => {
+      const result = urlPatternMatcher.match("https://example.com", "example.com", {
+        ruleName: "My Rule"
+      })
+      expect(result.matched).toBe(true)
+      expect(result.groupName).toBe("My Rule")
+    })
+  })
+
+  describe("match - edge cases", () => {
+    it("should handle invalid URL gracefully", () => {
+      const result = urlPatternMatcher.match("not-a-url", "example.com")
+      expect(result.matched).toBe(false)
+    })
+
+    it("should handle empty domain pattern part", () => {
+      const result = urlPatternMatcher.match("https://example.com", "/path")
+      expect(result.matched).toBe(false)
+    })
+
+    it("should handle regex pattern error", () => {
+      const result = urlPatternMatcher.match("https://example.com", "/[/")
+      expect(result.matched).toBe(false)
+    })
+
+    it("should handle segment extraction with invalid URL", () => {
+      const result = urlPatternMatcher.match("not-a-url", "{sub}.example.com")
+      expect(result.matched).toBe(false)
+    })
+  })
+
+  describe("matchDomainWildcard - edge cases", () => {
+    it("should return false for empty domain", () => {
+      const result = urlPatternMatcher.matchDomainWildcard("", "example.com")
+      expect(result).toBe(false)
+    })
+
+    it("should return false for empty pattern", () => {
+      const result = urlPatternMatcher.matchDomainWildcard("example.com", "")
+      expect(result).toBe(false)
+    })
+
+    it("should handle ** pattern with suffix", () => {
+      const result = urlPatternMatcher.matchDomainWildcard("google.co.uk", "google.**")
+      expect(result).toBe(true)
+    })
+
+    it("should handle ** pattern with non-matching prefix", () => {
+      const result = urlPatternMatcher.matchDomainWildcard("notgoogle.com", "google.**")
+      expect(result).toBe(false)
+    })
+  })
+
+  describe("matchPathWildcard - edge cases", () => {
+    it("should return true for empty pattern", () => {
+      const result = urlPatternMatcher.matchPathWildcard("/api/users", "")
+      expect(result).toBe(true)
+    })
+
+    it("should handle leading slash in path and pattern", () => {
+      const result = urlPatternMatcher.matchPathWildcard("/api/users", "/api")
+      expect(result).toBe(true)
+    })
+
+    it("should return false for invalid ** pattern parts", () => {
+      const result = urlPatternMatcher.matchPathWildcard("/a/b/c", "x**y**z")
+      expect(result).toBe(false)
+    })
+  })
+
+  describe("getPatternTypeDisplayName", () => {
+    it("should return display name for simple wildcard", () => {
+      expect(urlPatternMatcher.getPatternTypeDisplayName(PATTERN_TYPES.SIMPLE_WILDCARD)).toBe(
+        "Simple Wildcard"
+      )
+    })
+
+    it("should return display name for segment extraction", () => {
+      expect(urlPatternMatcher.getPatternTypeDisplayName(PATTERN_TYPES.SEGMENT_EXTRACTION)).toBe(
+        "Segment Extraction"
+      )
+    })
+
+    it("should return display name for regex", () => {
+      expect(urlPatternMatcher.getPatternTypeDisplayName(PATTERN_TYPES.REGEX)).toBe(
+        "Regular Expression"
+      )
+    })
+
+    it("should handle unknown type", () => {
+      expect(urlPatternMatcher.getPatternTypeDisplayName("unknown" as PatternType)).toBe(
+        "Simple Wildcard"
+      )
+    })
+  })
+
+  describe("getPatternHelp", () => {
+    it("should return help for simple wildcard", () => {
+      const help = urlPatternMatcher.getPatternHelp(PATTERN_TYPES.SIMPLE_WILDCARD)
+      expect(help).toContain("*")
+      expect(help).toContain("**")
+    })
+
+    it("should return help for segment extraction", () => {
+      const help = urlPatternMatcher.getPatternHelp(PATTERN_TYPES.SEGMENT_EXTRACTION)
+      expect(help).toContain("{variable}")
+    })
+
+    it("should return help for regex", () => {
+      const help = urlPatternMatcher.getPatternHelp(PATTERN_TYPES.REGEX)
+      expect(help).toContain("regex")
+    })
+
+    it("should handle unknown type", () => {
+      const help = urlPatternMatcher.getPatternHelp("unknown" as PatternType)
+      expect(help).toContain("*")
+    })
+  })
+
+  describe("parseVariableSpec", () => {
+    it("should parse variable with default type", () => {
+      // Test internal method through segment extraction
+      const result = urlPatternMatcher.match("https://testuser.example.com", "{user}.example.com")
+      expect(result.matched).toBe(true)
+      expect(result.extractedValues.user).toBe("testuser")
+    })
+  })
+
+  describe("buildSegmentRegex - delimiter types", () => {
+    it("should handle dash delimiter", () => {
+      const result = urlPatternMatcher.match(
+        "https://prefix-value.example.com",
+        "prefix-{val:segment:dash}.example.com"
+      )
+      expect(result.matched).toBe(true)
+      expect(result.extractedValues.val).toBe("value")
+    })
+
+    it("should handle dot delimiter", () => {
+      const result = urlPatternMatcher.match(
+        "https://value.region.example.com",
+        "{val:segment:dot}.{region}.example.com"
+      )
+      expect(result.matched).toBe(true)
+    })
+  })
+
+  describe("auto-subdomain matching", () => {
+    it("should NOT auto-match subdomain by default", () => {
+      const result = urlPatternMatcher.match("https://www.example.com", "example.com")
+      expect(result.matched).toBe(false)
+    })
+
+    it("should auto-match www subdomain when allowAutoSubdomain is true", () => {
+      const result = urlPatternMatcher.match("https://www.example.com", "example.com", {
+        allowAutoSubdomain: true
+      })
+      expect(result.matched).toBe(true)
+    })
+
+    it("should auto-match language subdomain when allowAutoSubdomain is true", () => {
+      const result = urlPatternMatcher.match("https://he.aliexpress.com", "aliexpress.com", {
+        allowAutoSubdomain: true
+      })
+      expect(result.matched).toBe(true)
+    })
+
+    it("should auto-match mobile subdomain when allowAutoSubdomain is true", () => {
+      const result = urlPatternMatcher.match("https://m.facebook.com", "facebook.com", {
+        allowAutoSubdomain: true
+      })
+      expect(result.matched).toBe(true)
+    })
+
+    it("should auto-match deep subdomains when allowAutoSubdomain is true", () => {
+      const result = urlPatternMatcher.match("https://api.v2.service.com", "service.com", {
+        allowAutoSubdomain: true
+      })
+      expect(result.matched).toBe(true)
+    })
+
+    it("should still match exact domain when allowAutoSubdomain is true", () => {
+      const result = urlPatternMatcher.match("https://example.com", "example.com", {
+        allowAutoSubdomain: true
+      })
+      expect(result.matched).toBe(true)
+    })
+
+    it("should NOT auto-match subdomain when allowAutoSubdomain is false", () => {
+      const result = urlPatternMatcher.match("https://www.example.com", "example.com", {
+        allowAutoSubdomain: false
+      })
+      expect(result.matched).toBe(false)
+    })
+
+    it("should auto-match subdomain for domain with path", () => {
+      const result = urlPatternMatcher.match("https://www.example.com/page", "example.com/page", {
+        allowAutoSubdomain: true
+      })
+      expect(result.matched).toBe(true)
+    })
+
+    it("should match explicit subdomain pattern exactly without auto-subdomain", () => {
+      const result = urlPatternMatcher.match("https://he.aliexpress.com", "he.aliexpress.com", {
+        allowAutoSubdomain: false
+      })
+      expect(result.matched).toBe(true)
+    })
+  })
+
+  describe("exclusion pattern validation", () => {
+    it("should validate exclusion pattern with simple domain", () => {
+      const result = urlPatternMatcher.validatePattern("!docs.google.com")
+      expect(result.isValid).toBe(true)
+    })
+
+    it("should validate exclusion pattern with wildcard", () => {
+      const result = urlPatternMatcher.validatePattern("!*.google.com")
+      expect(result.isValid).toBe(true)
+    })
+
+    it("should validate exclusion pattern with TLD wildcard", () => {
+      const result = urlPatternMatcher.validatePattern("!google.**")
+      expect(result.isValid).toBe(true)
+    })
+
+    it("should validate exclusion pattern with path", () => {
+      const result = urlPatternMatcher.validatePattern("!example.com/docs")
+      expect(result.isValid).toBe(true)
+    })
+
+    it("should reject empty exclusion pattern", () => {
+      const result = urlPatternMatcher.validatePattern("!")
+      expect(result.isValid).toBe(false)
+    })
+
+    it("should reject exclusion pattern with invalid inner content", () => {
+      const result = urlPatternMatcher.validatePattern("!***")
+      expect(result.isValid).toBe(false)
+    })
+
+    it("should reject wildcards after ** in domain pattern", () => {
+      const result = urlPatternMatcher.validatePattern("docs.**.*")
+      expect(result.isValid).toBe(false)
+      expect(result.error).toContain("Cannot use wildcards after **")
+      expect(result.error).toContain("docs.**")
+    })
+
+    it("should accept valid ** pattern without trailing wildcards", () => {
+      expect(urlPatternMatcher.validatePattern("docs.**").isValid).toBe(true)
+      expect(urlPatternMatcher.validatePattern("google.**").isValid).toBe(true)
+    })
+
+    it("should reject wildcards after ** in exclusion patterns too", () => {
+      const result = urlPatternMatcher.validatePattern("!docs.**.*")
+      expect(result.isValid).toBe(false)
+      expect(result.error).toContain("Cannot use wildcards after **")
+    })
+
+    it("should detect exclusion patterns via isExclusionPattern", () => {
+      expect(urlPatternMatcher.isExclusionPattern("!docs.google.com")).toBe(true)
+      expect(urlPatternMatcher.isExclusionPattern("docs.google.com")).toBe(false)
+      expect(urlPatternMatcher.isExclusionPattern("  !trimmed.com")).toBe(true)
+    })
+  })
+
+  describe("port pattern validation", () => {
+    it("should accept pattern with numeric port", () => {
+      expect(urlPatternMatcher.validatePattern("localhost:3000").isValid).toBe(true)
+    })
+
+    it("should accept wildcard domain with port", () => {
+      expect(urlPatternMatcher.validatePattern("*:8080").isValid).toBe(true)
+    })
+
+    it("should accept subdomain wildcard with port", () => {
+      expect(urlPatternMatcher.validatePattern("*.example.com:443").isValid).toBe(true)
+    })
+
+    it("should accept wildcard port", () => {
+      expect(urlPatternMatcher.validatePattern("localhost:*").isValid).toBe(true)
+    })
+
+    it("should reject non-numeric port", () => {
+      const result = urlPatternMatcher.validatePattern("localhost:abc")
+      expect(result.isValid).toBe(false)
+      // "abc" isn't recognized as a port, so colon falls into domain validation
+      expect(result.error).toContain("invalid characters")
+    })
+
+    it("should reject port 0", () => {
+      expect(urlPatternMatcher.validatePattern("localhost:0").isValid).toBe(false)
+    })
+
+    it("should reject port above 65535", () => {
+      expect(urlPatternMatcher.validatePattern("localhost:99999").isValid).toBe(false)
+    })
+
+    it("should accept port with exclusion prefix", () => {
+      expect(urlPatternMatcher.validatePattern("!localhost:3000").isValid).toBe(true)
+    })
+
+    it("should accept pattern without port (backward compatible)", () => {
+      expect(urlPatternMatcher.validatePattern("localhost").isValid).toBe(true)
+      expect(urlPatternMatcher.validatePattern("example.com").isValid).toBe(true)
+    })
+
+    it("should accept port with path", () => {
+      expect(urlPatternMatcher.validatePattern("localhost:3000/api").isValid).toBe(true)
+    })
+  })
+
+  describe("port pattern matching", () => {
+    it("should match exact port", () => {
+      const result = urlPatternMatcher.match("http://localhost:3000/page", "localhost:3000")
+      expect(result.matched).toBe(true)
+    })
+
+    it("should not match different port", () => {
+      const result = urlPatternMatcher.match("http://localhost:8080/page", "localhost:3000")
+      expect(result.matched).toBe(false)
+    })
+
+    it("should match subdomain wildcard with port", () => {
+      expect(
+        urlPatternMatcher.match("https://app.example.com:8080", "*.example.com:8080").matched
+      ).toBe(true)
+      expect(
+        urlPatternMatcher.match("https://app.example.com:9090", "*.example.com:8080").matched
+      ).toBe(false)
+    })
+
+    it("should match wildcard port", () => {
+      expect(urlPatternMatcher.match("http://localhost:3000", "localhost:*").matched).toBe(true)
+      expect(urlPatternMatcher.match("http://localhost:8080", "localhost:*").matched).toBe(true)
+    })
+
+    it("should match any port when pattern has no port", () => {
+      expect(urlPatternMatcher.match("http://localhost:3000", "localhost").matched).toBe(true)
+      expect(urlPatternMatcher.match("http://localhost:8080", "localhost").matched).toBe(true)
+      expect(urlPatternMatcher.match("http://localhost", "localhost").matched).toBe(true)
+    })
+
+    it("should match port with subdomain wildcard", () => {
+      const result = urlPatternMatcher.match("https://app.example.com:8080", "*.example.com:8080")
+      expect(result.matched).toBe(true)
+    })
+
+    it("should not match port with subdomain wildcard when port differs", () => {
+      const result = urlPatternMatcher.match("https://app.example.com:9090", "*.example.com:8080")
+      expect(result.matched).toBe(false)
+    })
+
+    it("should match port with path pattern", () => {
+      const result = urlPatternMatcher.match("http://localhost:3000/api/v1", "localhost:3000/api")
+      expect(result.matched).toBe(true)
+    })
+
+    it("should handle default HTTPS port 443", () => {
+      // https://example.com has port "" (default 443)
+      const result = urlPatternMatcher.match("https://example.com/page", "example.com:443")
+      expect(result.matched).toBe(true)
+    })
+
+    it("should handle default HTTP port 80", () => {
+      const result = urlPatternMatcher.match("http://example.com/page", "example.com:80")
+      expect(result.matched).toBe(true)
+    })
+
+    it("should not match default port when explicit non-default port specified", () => {
+      const result = urlPatternMatcher.match("https://example.com", "example.com:8080")
+      expect(result.matched).toBe(false)
+    })
+
+    it("should match lone * wildcard domain with port", () => {
+      expect(urlPatternMatcher.match("http://192.168.1.100:8403", "*:8403").matched).toBe(true)
+    })
+
+    it("should not match lone * wildcard domain when port differs", () => {
+      expect(urlPatternMatcher.match("http://192.168.1.100:9999", "*:8403").matched).toBe(false)
+    })
+
+    it("should match *.*.*.* IP pattern with port", () => {
+      expect(urlPatternMatcher.match("http://192.168.1.100:8403", "*.*.*.*:8403").matched).toBe(
+        true
+      )
+    })
+
+    it("should match IP segment wildcard with port", () => {
+      expect(urlPatternMatcher.match("http://192.168.1.100:8403", "192.168.1.*:8403").matched).toBe(
+        true
+      )
+    })
+
+    it("should match IP range wildcard with port", () => {
+      expect(urlPatternMatcher.match("http://192.168.1.100:8403", "192.168.*.*:8403").matched).toBe(
+        true
+      )
+    })
+
+    it("should match lone * without port (any domain)", () => {
+      expect(urlPatternMatcher.match("http://anything.example.com", "*").matched).toBe(true)
+    })
+  })
+
+  describe("splitDomainPort helper", () => {
+    it("should split domain and port", () => {
+      expect(urlPatternMatcher.splitDomainPort("localhost:3000")).toEqual({
+        domainPattern: "localhost",
+        portPattern: "3000"
+      })
+    })
+
+    it("should handle pattern without port", () => {
+      expect(urlPatternMatcher.splitDomainPort("example.com")).toEqual({
+        domainPattern: "example.com",
+        portPattern: null
+      })
+    })
+
+    it("should handle wildcard port", () => {
+      expect(urlPatternMatcher.splitDomainPort("localhost:*")).toEqual({
+        domainPattern: "localhost",
+        portPattern: "*"
+      })
+    })
+
+    it("should handle wildcard domain with port", () => {
+      expect(urlPatternMatcher.splitDomainPort("*.example.com:8080")).toEqual({
+        domainPattern: "*.example.com",
+        portPattern: "8080"
+      })
+    })
+
+    it("should not split on non-port suffix", () => {
+      // "co" is not a valid port, so treat whole thing as domain
+      expect(urlPatternMatcher.splitDomainPort("example.co").portPattern).toBeNull()
+    })
+  })
+  describe("query string matching", () => {
+    const TICKET_REGEX = "/.*domain\\.cz.*ticket=([a-z0-9-]+)/"
+
+    it("should match a regex against the query string", () => {
+      const result = urlPatternMatcher.match("https://domain.cz/?ticket=VZ01", TICKET_REGEX)
+      expect(result.matched).toBe(true)
+    })
+
+    it("should name the group from the captured value", () => {
+      // The point of the feature: one group per ticket, not one per domain
+      expect(
+        urlPatternMatcher.match("https://domain.cz/?ticket=VZ01", TICKET_REGEX).groupName
+      ).toBe("VZ01")
+      expect(
+        urlPatternMatcher.match("https://domain.cz/?a=1&ticket=VZ02&b=2", TICKET_REGEX).groupName
+      ).toBe("VZ02")
+    })
+
+    it("should not match when the query is absent", () => {
+      expect(urlPatternMatcher.match("https://domain.cz/", TICKET_REGEX).matched).toBe(false)
+    })
+
+    it("should extract a query value with a segment pattern", () => {
+      const result = urlPatternMatcher.match(
+        "https://domain.cz/?ticket=VZ03",
+        "domain.cz/?ticket={ticket}"
+      )
+
+      expect(result.matched).toBe(true)
+      expect(result.extractedValues.ticket).toBe("VZ03")
+      expect(result.groupName).toBe("VZ03")
+    })
+
+    it("should match a literal query with a simple pattern", () => {
+      expect(
+        urlPatternMatcher.match("https://domain.cz/?ticket=VZ01", "domain.cz/?ticket=VZ01").matched
+      ).toBe(true)
+      expect(
+        urlPatternMatcher.match("https://domain.cz/?ticket=VZ02", "domain.cz/?ticket=VZ01").matched
+      ).toBe(false)
+    })
+
+    it("should support a wildcard inside the query", () => {
+      expect(
+        urlPatternMatcher.match("https://domain.cz/?ticket=VZ09", "domain.cz/?ticket=*").matched
+      ).toBe(true)
+    })
+
+    it("should match a query on a path as well as a root", () => {
+      expect(
+        urlPatternMatcher.match("https://shop.com/list?page=2", "shop.com/list?page=2").matched
+      ).toBe(true)
+    })
+
+    it("should accept query characters when validating", () => {
+      expect(urlPatternMatcher.validatePattern("domain.cz/?ticket=VZ01").isValid).toBe(true)
+      expect(urlPatternMatcher.validatePattern("domain.cz/?ticket={ticket}").isValid).toBe(true)
+      expect(urlPatternMatcher.validatePattern("shop.com/list?a=1&b=2").isValid).toBe(true)
+    })
+
+    describe("existing patterns are unaffected", () => {
+      it("should still match a domain pattern on a URL carrying a query", () => {
+        expect(urlPatternMatcher.match("https://example.com/?q=1", "example.com").matched).toBe(
+          true
+        )
+      })
+
+      it("should still match path patterns unchanged", () => {
+        expect(
+          urlPatternMatcher.match("https://example.com/admin/x", "example.com/admin/*").matched
+        ).toBe(true)
+        expect(urlPatternMatcher.match("https://example.com/a/b", "example.com/a/**").matched).toBe(
+          true
+        )
+      })
+
+      it("should not let a query satisfy a path pattern", () => {
+        // ?admin=1 must not be mistaken for the /admin path
+        expect(
+          urlPatternMatcher.match("https://example.com/?admin=1", "example.com/admin").matched
+        ).toBe(false)
+      })
+
+      it("should keep a path-anchored regex from matching only the query", () => {
+        expect(
+          urlPatternMatcher.match("https://example.com/?x=/admin", "/example\\.com/admin/").matched
+        ).toBe(false)
+      })
+    })
+  })
+
+  describe("hash (fragment) matching", () => {
+    const ADMIN = "https://apps.cac1.pure.cloud/directory/#/admin/agents"
+    const ANALYTICS = "https://apps.cac1.pure.cloud/directory/#/analytics/views"
+
+    it("should separate hash routes with simple patterns", () => {
+      expect(urlPatternMatcher.match(ADMIN, "*.pure.cloud/directory/#/admin/*").matched).toBe(true)
+      expect(urlPatternMatcher.match(ANALYTICS, "*.pure.cloud/directory/#/admin/*").matched).toBe(
+        false
+      )
+      expect(
+        urlPatternMatcher.match(ANALYTICS, "*.pure.cloud/directory/#/analytics/*").matched
+      ).toBe(true)
+    })
+
+    it("should match a hash on a root path", () => {
+      expect(
+        urlPatternMatcher.match("https://app.io/#/settings", "app.io/#/settings").matched
+      ).toBe(true)
+    })
+
+    it("should match a hash after a query string", () => {
+      expect(
+        urlPatternMatcher.match("https://app.io/x?a=1#/admin", "app.io/x?a=1#/admin").matched
+      ).toBe(true)
+    })
+
+    it("should extract a hash segment", () => {
+      const result = urlPatternMatcher.match(
+        "https://app.io/directory/#/analytics",
+        "app.io/directory/#/{section}"
+      )
+      expect(result.matched).toBe(true)
+      expect(result.groupName).toBe("analytics")
+    })
+
+    it("should accept # when validating", () => {
+      expect(urlPatternMatcher.validatePattern("app.io/#/admin/*").isValid).toBe(true)
+    })
+
+    it("should not let a hash satisfy a path pattern", () => {
+      expect(
+        urlPatternMatcher.match("https://example.com/#admin", "example.com/admin").matched
+      ).toBe(false)
+    })
+  })
+})

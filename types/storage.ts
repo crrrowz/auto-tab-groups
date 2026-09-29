@@ -1,0 +1,148 @@
+/**
+ * Type definitions for browser storage
+ */
+
+import type { AiProvider, CustomAiModel } from "./ai"
+import type { CustomRule, TabGroupColor } from "./rules"
+
+/**
+ * Group-by mode options
+ */
+export type GroupByMode = "rules-only" | "domain" | "subdomain"
+
+/**
+ * Rule matching mode options
+ */
+export type RuleMatchingMode = "exact" | "contains" | "regex"
+
+/**
+ * Direction for alphabetical sorting of tab groups
+ */
+export type SortDirection = "asc" | "desc"
+
+/**
+ * User-selected UI locale. "auto" defers to the browser's UI locale.
+ * Widen this union when shipping additional locales.
+ */
+export type UserLocale = "auto" | "en" | "de" | "he" | "ar" | "es" | "hi" | "ru" | "zh"
+
+/**
+ * Mapping of group titles to their colors
+ */
+export type GroupColorMapping = Record<string, TabGroupColor>
+
+/**
+ * Mapping of rule IDs to CustomRule objects
+ */
+export type CustomRulesMapping = Record<string, CustomRule>
+
+/**
+ * Storage schema - matches browser.storage.local structure
+ */
+export interface StorageSchema {
+  /** Whether automatic tab grouping is enabled */
+  autoGroupingEnabled: boolean
+  /** Whether to group new empty tabs under "System" */
+  groupNewTabs: boolean
+  /** Whether the "System" group exists at all (off = system tabs stay ungrouped) */
+  systemGroupEnabled: boolean
+  /** How to group tabs: by rules only, domain, or subdomain */
+  groupByMode: GroupByMode
+  /** Custom rules for grouping specific domains */
+  customRules: CustomRulesMapping
+  /** How to match rules against URLs */
+  ruleMatchingMode: RuleMatchingMode
+  /** Saved colors for group titles */
+  groupColorMapping: GroupColorMapping
+  /** Global minimum tabs required to form a group */
+  minimumTabsForGroup: number
+  /** Whether auto-collapse is enabled (focus mode) */
+  autoCollapseEnabled: boolean
+  /** Delay in milliseconds before collapsing (0 = immediate) */
+  autoCollapseDelayMs: number
+  /** Whether AI features are enabled */
+  aiEnabled: boolean
+  /** Active AI provider backend */
+  aiProvider: AiProvider
+  /** Selected AI model ID */
+  aiModelId: string
+  /** User configured custom AI models */
+  customAiModels: CustomAiModel[]
+  /** Configurable similarity threshold for merging/grouping similar tabs (0.0 - 1.0) */
+  aiSimilarityThreshold: number
+  /** Whether to open new tabs next to the current tab (opt-in, default off) */
+  openTabNextToCurrent: boolean
+  /**
+   * Whether a tab opened in the background waits until you switch to it before
+   * being grouped, so it stays next to the tab it came from (opt-in, default off)
+   */
+  deferGroupingUntilSeen: boolean
+  /** Whether to keep tab groups sorted alphabetically */
+  sortGroupsAlphabetically: boolean
+  /** Sort direction when alphabetical sorting is enabled ("asc" = A-Z, "desc" = Z-A) */
+  sortGroupsDirection: SortDirection
+  /** Whether to prefix group titles with their sort position (e.g., "1. AI") */
+  indexGroupTitles: boolean
+  /** Whether to hide the extension's right-click context menu items */
+  hideContextMenu: boolean
+  /** User-selected UI locale override ("auto" = follow browser) */
+  userLocale: UserLocale
+  /**
+   * Group titles auto-grouping must never touch. Declared by the user, never
+   * inferred — seeded once at install from groups that already existed, and
+   * edited from the group's right-click menu.
+   */
+  protectedGroupTitles: string[]
+  /** Custom OpenAI-compatible endpoint URL */
+  aiCustomEndpoint: string
+  /** Custom OpenAI-compatible API key */
+  aiCustomApiKey: string
+  /** Custom OpenAI-compatible model name */
+  aiCustomModel: string
+  /** Name of the Read Later / "فيما بعد" group */
+  laterGroupName: string
+  /** Whether to lock and pin the first tab in the later group at index 0 */
+  lockLaterGroupFirstTab: boolean
+  /** ID of the leader tab in the later group */
+  laterGroupLeaderTabId: number | null
+}
+
+/**
+ * Default storage state
+ */
+export const DEFAULT_STATE: StorageSchema = {
+  autoGroupingEnabled: true,
+  groupNewTabs: true,
+  systemGroupEnabled: true,
+  groupByMode: "domain",
+  customRules: {},
+  ruleMatchingMode: "exact",
+  groupColorMapping: {},
+  minimumTabsForGroup: 1,
+  autoCollapseEnabled: false,
+  autoCollapseDelayMs: 0,
+  aiEnabled: false,
+  aiProvider: "webllm",
+  aiModelId: "Qwen2.5-3B-Instruct-q4f16_1-MLC",
+  customAiModels: [],
+  aiSimilarityThreshold: 0.6,
+  openTabNextToCurrent: false,
+  deferGroupingUntilSeen: false,
+  sortGroupsAlphabetically: false,
+  sortGroupsDirection: "asc",
+  indexGroupTitles: false,
+  hideContextMenu: false,
+  userLocale: "auto",
+  protectedGroupTitles: [],
+  aiCustomEndpoint: "http://localhost:11434/v1",
+  aiCustomApiKey: "",
+  aiCustomModel: "",
+  laterGroupName: "فيما بعد",
+  lockLaterGroupFirstTab: true,
+  laterGroupLeaderTabId: null
+}
+
+/**
+ * Partial storage data for updates
+ */
+export type StorageUpdate = Partial<StorageSchema>

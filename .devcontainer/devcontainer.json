@@ -1,0 +1,27 @@
+{
+  "name": "Tab Group Master Development",
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "context": "..",
+    "target": "development"
+  },
+  "workspaceFolder": "/workspace/app",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace/app,type=bind",
+  "mounts": [
+    "source=tab-group-master-node-modules,target=/workspace/app/node_modules,type=volume",
+    "source=tab-group-master-wxt,target=/workspace/app/.wxt,type=volume",
+    "source=tab-group-master-output,target=/workspace/app/.output,type=volume",
+    "source=tab-group-master-bun-cache,target=/root/.bun,type=volume"
+  ],
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "biomejs.biome"
+      },
+      "extensions": ["biomejs.biome", "wxt-dev.vscode-wxt"]
+    }
+  },
+  "postCreateCommand": "bun install && bun x wxt prepare",
+  "remoteUser": "appuser"
+}

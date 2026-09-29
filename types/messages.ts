@@ -1,0 +1,415 @@
+/**
+ * Type definitions for background script messages
+ */
+
+import type { AiMessage, AiMessageAction } from "./ai-messages"
+import type { CustomRule, RuleData, RulesExportData, RulesStats } from "./rules"
+import type { GroupByMode, SortDirection, UserLocale } from "./storage"
+
+/**
+ * All possible message actions
+ */
+export type MessageAction =
+  | "group"
+  | "ungroup"
+  | "generateNewColors"
+  | "restoreSavedColors"
+  | "collapseAll"
+  | "expandAll"
+  | "toggleCollapse"
+  | "getGroupsCollapseState"
+  | "getAutoGroupState"
+  | "getGroupNewTabsState"
+  | "getSystemGroupEnabled"
+  | "getOnlyApplyToNewTabs"
+  | "toggleAutoGroup"
+  | "toggleGroupNewTabs"
+  | "toggleSystemGroup"
+  | "getGroupByMode"
+  | "setGroupByMode"
+  | "getMinimumTabsForGroup"
+  | "setMinimumTabsForGroup"
+  | "getOpenTabNextToCurrent"
+  | "toggleOpenTabNextToCurrent"
+  | "getDeferGroupingUntilSeen"
+  | "toggleDeferGroupingUntilSeen"
+  | "getSortGroupsAlphabetically"
+  | "toggleSortGroupsAlphabetically"
+  | "getSortGroupsDirection"
+  | "setSortGroupsDirection"
+  | "getIndexGroupTitles"
+  | "toggleIndexGroupTitles"
+  | "getHideContextMenu"
+  | "toggleHideContextMenu"
+  | "getUserLocale"
+  | "setUserLocale"
+  | "moveTabToGroupWindow"
+  | "planGroupConsolidation"
+  | "consolidateGroups"
+  | "getProtectedGroups"
+  | "addProtectedGroup"
+  | "removeProtectedGroup"
+  | "getCustomRules"
+  | "addCustomRule"
+  | "updateCustomRule"
+  | "deleteCustomRule"
+  | "addDomainToRule"
+  | "getRulesStats"
+  | "exportRules"
+  | "importRules"
+  | "getExportStats"
+  | AiMessageAction
+
+/**
+ * Base message structure
+ */
+interface BaseMessage {
+  action: MessageAction
+}
+
+/**
+ * Messages that don't require additional parameters
+ */
+export interface SimpleMessage extends BaseMessage {
+  action:
+    | "group"
+    | "ungroup"
+    | "generateNewColors"
+    | "restoreSavedColors"
+    | "collapseAll"
+    | "expandAll"
+    | "toggleCollapse"
+    | "getGroupsCollapseState"
+    | "getAutoGroupState"
+    | "getGroupNewTabsState"
+    | "getSystemGroupEnabled"
+    | "getOnlyApplyToNewTabs"
+    | "getGroupByMode"
+    | "getMinimumTabsForGroup"
+    | "getOpenTabNextToCurrent"
+    | "getDeferGroupingUntilSeen"
+    | "getSortGroupsAlphabetically"
+    | "getSortGroupsDirection"
+    | "getIndexGroupTitles"
+    | "getHideContextMenu"
+    | "getUserLocale"
+    | "planGroupConsolidation"
+    | "consolidateGroups"
+    | "getProtectedGroups"
+    | "getCustomRules"
+    | "getRulesStats"
+    | "exportRules"
+    | "getExportStats"
+    | "getAiState"
+    | "getAiModelStatus"
+    | "loadAiModel"
+    | "unloadAiModel"
+    | "checkWebGpuSupport"
+    | "suggestGroups"
+}
+
+/**
+ * Toggle auto-group message
+ */
+export interface ToggleAutoGroupMessage extends BaseMessage {
+  action: "toggleAutoGroup"
+  enabled: boolean
+}
+
+/**
+ * Toggle group new tabs message
+ */
+export interface ToggleGroupNewTabsMessage extends BaseMessage {
+  action: "toggleGroupNewTabs"
+  enabled: boolean
+}
+
+/**
+ * Toggle the "System" group on/off message
+ */
+export interface ToggleSystemGroupMessage extends BaseMessage {
+  action: "toggleSystemGroup"
+  enabled: boolean
+}
+
+/**
+ * Send a tab to the window where its group already lives
+ */
+export interface MoveTabToGroupWindowMessage extends BaseMessage {
+  action: "moveTabToGroupWindow"
+  tabId: number
+}
+
+/**
+ * Add a group title to the protected list
+ */
+export interface AddProtectedGroupMessage extends BaseMessage {
+  action: "addProtectedGroup"
+  title: string
+}
+
+/**
+ * Remove a group title from the protected list
+ */
+export interface RemoveProtectedGroupMessage extends BaseMessage {
+  action: "removeProtectedGroup"
+  title: string
+}
+
+/**
+ * Set group-by mode message
+ */
+export interface SetGroupByModeMessage extends BaseMessage {
+  action: "setGroupByMode"
+  mode: GroupByMode
+}
+
+/**
+ * Set minimum tabs for group message
+ */
+export interface SetMinimumTabsMessage extends BaseMessage {
+  action: "setMinimumTabsForGroup"
+  minimumTabs: number
+}
+
+/**
+ * Toggle open tab next to current message
+ */
+export interface ToggleOpenTabNextToCurrentMessage extends BaseMessage {
+  action: "toggleOpenTabNextToCurrent"
+  enabled: boolean
+}
+
+/**
+ * Toggle deferring grouping until a tab is first viewed
+ */
+export interface ToggleDeferGroupingMessage extends BaseMessage {
+  action: "toggleDeferGroupingUntilSeen"
+  enabled: boolean
+}
+
+/**
+ * Toggle sort groups alphabetically message
+ */
+export interface ToggleSortGroupsMessage extends BaseMessage {
+  action: "toggleSortGroupsAlphabetically"
+  enabled: boolean
+}
+
+/**
+ * Set sort groups direction message
+ */
+export interface SetSortGroupsDirectionMessage extends BaseMessage {
+  action: "setSortGroupsDirection"
+  direction: SortDirection
+}
+
+/**
+ * Toggle index group titles message
+ */
+export interface ToggleIndexGroupTitlesMessage extends BaseMessage {
+  action: "toggleIndexGroupTitles"
+  enabled: boolean
+}
+
+/**
+ * Toggle hide context menu message
+ */
+export interface ToggleHideContextMenuMessage extends BaseMessage {
+  action: "toggleHideContextMenu"
+  enabled: boolean
+}
+
+/**
+ * Set user-selected UI locale message
+ */
+export interface SetUserLocaleMessage extends BaseMessage {
+  action: "setUserLocale"
+  locale: UserLocale
+}
+
+/**
+ * Add custom rule message
+ */
+export interface AddCustomRuleMessage extends BaseMessage {
+  action: "addCustomRule"
+  ruleData: RuleData
+}
+
+/**
+ * Update custom rule message
+ */
+export interface UpdateCustomRuleMessage extends BaseMessage {
+  action: "updateCustomRule"
+  ruleId: string
+  ruleData: RuleData
+}
+
+/**
+ * Delete custom rule message
+ */
+export interface DeleteCustomRuleMessage extends BaseMessage {
+  action: "deleteCustomRule"
+  ruleId: string
+}
+
+/**
+ * Add a domain to an existing rule message
+ */
+export interface AddDomainToRuleMessage extends BaseMessage {
+  action: "addDomainToRule"
+  ruleId: string
+  domain: string
+}
+
+/**
+ * Import rules message
+ */
+export interface ImportRulesMessage extends BaseMessage {
+  action: "importRules"
+  jsonData: string
+  replaceExisting: boolean
+}
+
+/**
+ * Union of all possible messages
+ */
+export type Message =
+  | SimpleMessage
+  | ToggleAutoGroupMessage
+  | ToggleGroupNewTabsMessage
+  | SetGroupByModeMessage
+  | SetMinimumTabsMessage
+  | ToggleOpenTabNextToCurrentMessage
+  | ToggleSortGroupsMessage
+  | SetSortGroupsDirectionMessage
+  | ToggleIndexGroupTitlesMessage
+  | ToggleHideContextMenuMessage
+  | SetUserLocaleMessage
+  | AddCustomRuleMessage
+  | UpdateCustomRuleMessage
+  | DeleteCustomRuleMessage
+  | AddDomainToRuleMessage
+  | ImportRulesMessage
+  | AiMessage
+
+/**
+ * Base response structure
+ */
+interface BaseResponse {
+  success?: boolean
+  error?: string
+}
+
+/**
+ * Response for simple success operations
+ */
+export interface SuccessResponse extends BaseResponse {
+  success: true
+}
+
+/**
+ * Response for error operations
+ */
+export interface ErrorResponse extends BaseResponse {
+  success: false
+  error: string
+}
+
+/**
+ * Response for toggle collapse
+ */
+export interface ToggleCollapseResponse extends BaseResponse {
+  success: true
+  isCollapsed: boolean
+}
+
+/**
+ * Response for get collapse state
+ */
+export interface CollapseStateResponse {
+  isCollapsed: boolean
+}
+
+/**
+ * Response for get auto-group state
+ */
+export interface AutoGroupStateResponse {
+  enabled: boolean
+}
+
+/**
+ * Response for get group-by mode
+ */
+export interface GroupByModeResponse {
+  mode: GroupByMode
+}
+
+/**
+ * Response for get sort groups direction
+ */
+export interface SortGroupsDirectionResponse {
+  direction: SortDirection
+}
+
+/**
+ * Response for get/set user locale
+ */
+export interface UserLocaleResponse {
+  locale: UserLocale
+}
+
+/**
+ * Response for get minimum tabs
+ */
+export interface MinimumTabsResponse {
+  minimumTabs: number
+}
+
+/**
+ * Response for get custom rules
+ */
+export interface CustomRulesResponse {
+  customRules: CustomRule[]
+}
+
+/**
+ * Response for add rule
+ */
+export interface AddRuleResponse extends BaseResponse {
+  success: boolean
+  ruleId?: string
+}
+
+/**
+ * Response for get rules stats
+ */
+export interface RulesStatsResponse {
+  stats: RulesStats
+}
+
+/**
+ * Response for export rules
+ */
+export interface ExportRulesResponse extends BaseResponse {
+  success: boolean
+  data?: RulesExportData
+}
+
+/**
+ * Response for import rules
+ */
+export interface ImportRulesResponse extends BaseResponse {
+  success: boolean
+  imported?: number
+  skipped?: number
+  errors?: string[]
+}
+
+/**
+ * Response for export stats
+ */
+export interface ExportStatsResponse extends BaseResponse {
+  success: boolean
+  stats?: RulesStats
+}

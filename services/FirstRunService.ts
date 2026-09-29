@@ -1,0 +1,55 @@
+/**
+ * First-run setup.
+ *
+ * Everything here runs once, before the extension has ever touched the
+ * browser's tab groups.
+ */
+
+import { protectedGroupTitles } from "../utils/storage"
+
+/**
+ * Protects the tab groups that already exist when the extension first runs.
+ *
+ * A group present before the extension has ever run cannot have been created
+ * by it — that is a fact, not a heuristic, and it is the one moment we can
+ * safely say a group belongs to the user. Without this, the startup
+ * groupAllTabs() dissolves someone's manual organization seconds after
+ * install, before they have touched a single setting.
+ *
+ * An empty storage.local is what identifies a first run: an update always
+ * leaves keys behind. This must therefore run before anything writes to
+ * storage.
+ *
+ * @returns the titles that were protected, empty when this was not a first run
+ */
+export async function seedProtectedGroupsOnFirstRun(): Promise<string[]> {
+  try {
+    const existingStorage = await browser.storage.local.get(null)
+    if (Object.keys(existingStorage).length > 0) return []
+
+    if (!browser.tabGroups) return []
+
+    const groups = await browser.tabGroups.query({})
+    const allTitles = [...new Set(groups.map(group => group.title).filter(Boolean))] as string[]
+    // System group is internal to the browser/extension and should never be protected
+    const titles = allTitles.filter(t => t.toLowerCase() !== "system")
+
+    // Write even when there is nothing to protect. Storage stays empty until the
+    // user changes a setting, and MV3 shuts down idle service workers — so
+    // without this marker a restart hours later would look like a fresh install
+    // all over again and protect groups the extension created itself.
+    await protectedGroupTitles.setValue(titles)
+
+    if (titles.length > 0) {
+      console.log(
+        `[FirstRunService] First run — protecting ${titles.length} pre-existing group(s):`,
+        titles
+      )
+    }
+    return titles
+  } catch (error) {
+    // Never block startup over this
+    console.error("[FirstRunService] Failed to seed protected groups:", error)
+    return []
+  }
+}

@@ -1,0 +1,40 @@
+# WXT build output
+.output/
+.wxt/
+
+# Dependencies
+node_modules/
+
+# Build artifacts
+dist/
+web-ext-artifacts/
+*.zip
+*.xpi
+*.tar.gz
+*.tgz
+*.log
+
+# Test results and reports
+test-report/
+playwright-report/
+test-results/
+coverage/
+TEST_REPORT.md
+
+# Generated manifest file
+manifest.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+users-feedback.csv
+/graft
+PowerShellHistory.txt
+/.kilo
+/.cache

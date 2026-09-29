@@ -1,0 +1,287 @@
+# Changelog
+
+All notable changes to Auto Tab Groups are documented here.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+Releases before 3.5.2 predate this file; see the
+[commit history](https://github.com/nitzanpap/auto-tab-groups/commits/master)
+for those.
+
+## [Unreleased]
+
+## [3.15.4]
+
+### Fixed
+
+- Empty rule imports now clear existing rules when Replace mode is selected ([#104]).
+- Rule deletion uses an in-page confirmation so it works when browser confirmation
+  dialogs are suppressed ([#104]).
+
+## [3.15.3]
+
+### Fixed
+
+- A tab group color picked by hand reverted on its own, seemingly when another
+  group was opened. The color mapping a group is rebuilt from was only ever
+  written by the extension, so a manual color was never recorded and the next
+  rebuild — a group dropping below its minimum-tabs threshold and coming back,
+  or the startup color restore — repainted it with the extension's old choice.
+  A manual recolor is recorded now. The startup restore also skipped every
+  group while tab sorting was on, because it looked up the title with its sort
+  index still attached ([#103]).
+
+## [3.15.2]
+
+### Fixed
+
+- `*.google.**` — any subdomain, any TLD — matched no host at all, though the
+  docs have always shown it. The halves around a `**` were compared literally,
+  so a `*` in them could only ever match a literal `*` in the host. They are
+  globs now, like every other part of a pattern ([#98]).
+
+## [3.15.1]
+
+### Security
+
+- Rule patterns could hang the extension. Every pattern type compiled to a
+  regex that backtracks exponentially, so a pattern like `*a*a*a…b` with twenty
+  wildcards took over a minute in a single match — with the service worker
+  blocked for all of it, on every tab update, for every rule. Rules import from
+  a JSON file, so a shared rules pack could do this to whoever imported it.
+  Wildcard, path and title patterns are now scanned instead of compiled and
+  cost the same whoever wrote them; extraction patterns are capped at 4
+  wildcards and variables; a regex that backtracks catastrophically is refused
+  when the rule is saved or imported, and one that slips through is skipped
+  after its first slow run ([#98]).
+
+## [3.15.0]
+
+### Added
+
+- Rules can match the page title. A pattern prefixed with `title:` —
+  `title:Barely Sociable`, `title:*- Figma` — is matched against the tab's
+  title instead of its URL, for pages whose address says nothing about what
+  they are. Works as an exclusion too, and tabs are re-filed when a title
+  changes ([#98]).
+
+### Fixed
+
+- A query written straight after the host (`youtube.com?ab_channel=Name`) was
+  rejected as an invalid pattern: the host half swallowed the query and then
+  refused it for containing `?` and `=`. It now reads as "anywhere on this
+  host", so the parameter can sit anywhere in the query ([#98]).
+- A `{variable}` in a query string captured everything after it, so a rule on
+  `?ab_channel={channel}` named its group `Name&v=abc123` whenever the
+  parameter was not the last one. A capture now stops at the next parameter
+  ([#98]).
+- Extraction patterns ignored the auto-subdomain pass that wildcard patterns
+  get, so `youtube.com/watch?*v={id}` matched nothing on `www.youtube.com`
+  while the same rule without `{id}` matched. Both behave the same way now
+  ([#98]).
+
+## [3.14.1]
+
+### Fixed
+
+- The minimum-tabs threshold took apart tab groups belonging to other
+  extensions. Every tab close swept all groups in the window, and a group
+  another extension created and kept below the minimum was ungrouped out from
+  under it; the same happened per tab when a tab in such a group navigated.
+  Extensions that name their groups per session could not be protected by
+  title, so the threshold now only disbands groups Auto Tab Groups would have
+  created itself, and no longer disbands protected ones ([#96], [#95]).
+
+## [3.14.0]
+
+### Added
+
+- Merge groups that are split across windows. When the same group exists in
+  several windows, Advanced offers to consolidate them into the window already
+  holding most of each one. It shows exactly what will move before doing it,
+  because the move cannot be undone. Groups excluded from auto-grouping, the
+  System group and pinned tabs are left alone ([#94], follows [#68]).
+
+## [3.13.1]
+
+### Fixed
+
+- Rules could not address anything after a `#`, so single-page apps that route
+  through the fragment — `apps.example.com/directory/#/admin/` and
+  `.../#/analytics/` — all collapsed into one group. A pattern containing `#` is
+  now matched against the fragment as well ([#93], closes [#92]).
+
+### Changed
+
+- Rules import from the sidebar now opens the same dedicated page the popup
+  uses, instead of an inline file picker.
+
+## [3.13.0]
+
+### Added
+
+- "Move tab to its group's window", from the right-click menu or an (unassigned)
+  keyboard shortcut. Sends a tab to the window where its group already lives,
+  for people who keep windows roughly by topic. Grouping still never moves tabs
+  between windows on its own ([#90], closes [#68]).
+
+## [3.12.0]
+
+### Added
+
+- Optional "wait until I view a new tab before grouping it". Off by default.
+  When on, a tab opened in the background from another tab stays next to the
+  tab it came from until you switch to it, instead of being filed away before
+  you have seen it. Foreground tabs, tabs with no opener, and the "Group Tabs"
+  button are unaffected ([#89], addresses [#68] / [#88]).
+
+## [3.11.0]
+
+### Added
+
+- Rules can match query strings. A pattern containing `?` is matched against
+  the query as well as the host and path, so tabs on one domain can be split by
+  a parameter — `domain.cz/?ticket={ticket}` puts each ticket in its own group,
+  and a regex capture does the same. Patterns written before this behave
+  exactly as they did ([#87], closes [#27]).
+
+## [3.10.0]
+
+### Added
+
+- Keyboard shortcuts for turning auto-grouping on or off, grouping all tabs,
+  ungrouping all tabs, and collapsing or expanding every group. No keys are
+  assigned by default — installing takes none of your existing shortcuts, and
+  nothing fires until you assign keys in the browser's own shortcut settings.
+  Advanced → Keyboard shortcuts opens that page ([#86], closes [#25]).
+
+## [3.9.1]
+
+### Fixed
+
+- The first-run setup could fire long after install. Storage stays empty until
+  you change a setting, and the browser shuts down idle service workers — so a
+  later restart looked like a fresh install and excluded whatever groups existed
+  by then, including ones the extension had created itself. Auto-grouping then
+  silently stopped managing them ([#84]).
+
+## [3.9.0]
+
+### Added
+
+- Groups can be excluded from auto-grouping. Right-click a tab to exclude its
+  group; the popup and sidebar list every exclusion and let you remove one.
+  Groups that already exist when the extension is first installed are excluded
+  automatically, so installing no longer dissolves organization you built by
+  hand ([#82], closes [#23]).
+
+## [3.8.1]
+
+### Fixed
+
+- The rule editor always showed "Create Custom Rule", even when adding a
+  blacklist rule, editing a rule, or creating one from a group. The translation
+  pass overwrote the title that mode setup had already applied ([#81]).
+
+## [3.8.0]
+
+### Added
+
+- Rule priority and per-rule minimum tabs are editable in the rule editor.
+  Both fields existed and were honoured, but could only be set by exporting
+  rules, editing the JSON and re-importing ([#80]).
+
+### Fixed
+
+- Clearing a per-rule minimum had no effect — the previous value was kept.
+
+## [3.7.1]
+
+### Fixed
+
+- Rule priority is honoured when matching tabs. It was documented as
+  "higher = more priority" and validated on import, but never read: overlapping
+  rules resolved by creation order instead. Rules that share a priority keep
+  their existing order, so nothing changes unless you set one ([#79],
+  closes [#78]).
+
+## [3.7.0]
+
+### Added
+
+- Catch-all rules. A rule whose pattern is a lone `*` collects tabs nothing else
+  claimed — every unmatched tab in rules-only mode, or tabs that can't form
+  their own group in domain mode. Browser pages and blacklisted tabs are never
+  collected ([#77], closes [#29]).
+
+## [3.6.0]
+
+### Added
+
+- Opt-in setting to remove the "System" group. Off by default; turning it on
+  keeps browser pages and new empty tabs ungrouped and dissolves any existing
+  System group ([#76], closes [#31]).
+
+### Fixed
+
+- Dissolving the System group only affected the current window, and missed
+  groups carrying a sort-index prefix.
+
+## [3.5.2]
+
+### Fixed
+
+- Tab groups for internationalized domains showed punycode — `Xn--mnchen-3ya`
+  instead of `München` ([#75], closes [#74]).
+
+[unreleased]: https://github.com/nitzanpap/auto-tab-groups/compare/v3.15.3...HEAD
+[3.15.4]: https://github.com/nitzanpap/auto-tab-groups/releases/tag/v3.15.4
+[3.15.3]: https://github.com/nitzanpap/auto-tab-groups/releases/tag/v3.15.3
+[3.15.2]: https://github.com/nitzanpap/auto-tab-groups/releases/tag/v3.15.2
+[3.15.1]: https://github.com/nitzanpap/auto-tab-groups/releases/tag/v3.15.1
+[3.15.0]: https://github.com/nitzanpap/auto-tab-groups/releases/tag/v3.15.0
+[3.14.1]: https://github.com/nitzanpap/auto-tab-groups/releases/tag/v3.14.1
+[3.14.0]: https://github.com/nitzanpap/auto-tab-groups/releases/tag/v3.14.0
+[3.13.1]: https://github.com/nitzanpap/auto-tab-groups/releases/tag/v3.13.1
+[3.13.0]: https://github.com/nitzanpap/auto-tab-groups/releases/tag/v3.13.0
+[3.12.0]: https://github.com/nitzanpap/auto-tab-groups/releases/tag/v3.12.0
+[3.11.0]: https://github.com/nitzanpap/auto-tab-groups/releases/tag/v3.11.0
+[3.10.0]: https://github.com/nitzanpap/auto-tab-groups/releases/tag/v3.10.0
+[3.9.1]: https://github.com/nitzanpap/auto-tab-groups/releases/tag/v3.9.1
+[3.9.0]: https://github.com/nitzanpap/auto-tab-groups/releases/tag/v3.9.0
+[3.8.1]: https://github.com/nitzanpap/auto-tab-groups/releases/tag/v3.8.1
+[3.8.0]: https://github.com/nitzanpap/auto-tab-groups/releases/tag/v3.8.0
+[3.7.1]: https://github.com/nitzanpap/auto-tab-groups/releases/tag/v3.7.1
+[3.7.0]: https://github.com/nitzanpap/auto-tab-groups/releases/tag/v3.7.0
+[3.6.0]: https://github.com/nitzanpap/auto-tab-groups/releases/tag/v3.6.0
+[3.5.2]: https://github.com/nitzanpap/auto-tab-groups/releases/tag/v3.5.2
+[#23]: https://github.com/nitzanpap/auto-tab-groups/issues/23
+[#25]: https://github.com/nitzanpap/auto-tab-groups/issues/25
+[#27]: https://github.com/nitzanpap/auto-tab-groups/issues/27
+[#68]: https://github.com/nitzanpap/auto-tab-groups/issues/68
+[#88]: https://github.com/nitzanpap/auto-tab-groups/issues/88
+[#29]: https://github.com/nitzanpap/auto-tab-groups/issues/29
+[#31]: https://github.com/nitzanpap/auto-tab-groups/issues/31
+[#74]: https://github.com/nitzanpap/auto-tab-groups/issues/74
+[#75]: https://github.com/nitzanpap/auto-tab-groups/pull/75
+[#76]: https://github.com/nitzanpap/auto-tab-groups/pull/76
+[#77]: https://github.com/nitzanpap/auto-tab-groups/pull/77
+[#78]: https://github.com/nitzanpap/auto-tab-groups/issues/78
+[#79]: https://github.com/nitzanpap/auto-tab-groups/pull/79
+[#80]: https://github.com/nitzanpap/auto-tab-groups/pull/80
+[#81]: https://github.com/nitzanpap/auto-tab-groups/pull/81
+[#82]: https://github.com/nitzanpap/auto-tab-groups/pull/82
+[#84]: https://github.com/nitzanpap/auto-tab-groups/pull/84
+[#86]: https://github.com/nitzanpap/auto-tab-groups/pull/86
+[#87]: https://github.com/nitzanpap/auto-tab-groups/pull/87
+[#89]: https://github.com/nitzanpap/auto-tab-groups/pull/89
+[#90]: https://github.com/nitzanpap/auto-tab-groups/pull/90
+[#92]: https://github.com/nitzanpap/auto-tab-groups/issues/92
+[#93]: https://github.com/nitzanpap/auto-tab-groups/pull/93
+[#94]: https://github.com/nitzanpap/auto-tab-groups/pull/94
+[#95]: https://github.com/nitzanpap/auto-tab-groups/pull/95
+[#96]: https://github.com/nitzanpap/auto-tab-groups/issues/96
+[#98]: https://github.com/nitzanpap/auto-tab-groups/issues/98
+[#103]: https://github.com/nitzanpap/auto-tab-groups/pull/103
+[#104]: https://github.com/nitzanpap/auto-tab-groups/pull/104
