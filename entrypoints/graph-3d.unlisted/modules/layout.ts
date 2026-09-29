@@ -199,16 +199,19 @@ export function calculateGroupConstellationPositions(
   }
 
   // 3 or more groups: distribute in a spacious 3D constellation ring with gentle depth offsets
-  let totalDiameter = 0
-  for (const g of groups) {
-    totalDiameter += getGroupBoundingRadius(g.tabCount) * 2 + 160
+  let maxAdjacentRadiusSum = 0
+  for (let i = 0; i < n; i++) {
+    const nextIdx = (i + 1) % n
+    const sum = getGroupBoundingRadius(groups[i].tabCount) + getGroupBoundingRadius(groups[nextIdx].tabCount)
+    if (sum > maxAdjacentRadiusSum) maxAdjacentRadiusSum = sum
   }
-  const constellationRadius = Math.max(500, totalDiameter / (2 * Math.PI))
+  const minChordRadius = (maxAdjacentRadiusSum + 120) / (2 * Math.sin(Math.PI / n))
+  const constellationRadius = Math.max(650, minChordRadius)
 
   for (let i = 0; i < n; i++) {
     const angle = (i * 2 * Math.PI) / n
     const x = constellationRadius * Math.cos(angle)
-    const y = constellationRadius * Math.sin(angle) * 0.75
+    const y = constellationRadius * Math.sin(angle)
     const z = Math.sin(angle * 2) * 60
 
     positions.set(groups[i].id, { x, y, z })

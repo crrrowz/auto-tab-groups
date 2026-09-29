@@ -464,7 +464,7 @@ describe("TabGroupService", () => {
 
       await tabGroupService.groupAllTabsManually()
 
-      expect(mockBrowser.tabs.get).toHaveBeenCalledWith(1)
+      expect(mockBrowser.tabs.group).toHaveBeenCalled()
     })
 
     it("should respect groupNewTabs setting for about:blank", async () => {

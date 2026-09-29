@@ -994,7 +994,7 @@ class TabGroupServiceSimplified {
         // System URL / empty URL handling
         const isSystem = !tab.url || tab.url === "" || extractDomain(tab.url, false) === "system"
         if (isSystem) {
-          if (tabGroupState.systemGroupEnabled && (forceGrouping || tabGroupState.groupNewTabs)) {
+          if (tabGroupState.systemGroupEnabled && tabGroupState.groupNewTabs) {
             const bucket = groupBuckets.get("System") ?? { tabs: [], customRule: null, defaultColor: "grey" }
             bucket.tabs.push(tab)
             groupBuckets.set("System", bucket)

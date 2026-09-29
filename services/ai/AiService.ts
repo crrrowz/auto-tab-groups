@@ -38,7 +38,7 @@ class AiService {
 
   private customEndpoint = "http://localhost:11434/v1"
   private customApiKey = ""
-  private customModel = ""
+  private customModel = "gpt-4o-mini"
 
   updateFromStorage(settings: Partial<AiStorageSettings>): void {
     if (settings.aiEnabled !== undefined) this.enabled = settings.aiEnabled
@@ -68,6 +68,11 @@ class AiService {
     }
     if (settings.aiModelId !== undefined) {
       this.modelId = settings.aiModelId
+      const available = this.getActiveProvider().getAvailableModels()
+      if (available.length > 0 && !available.some(m => m.id === this.modelId)) {
+        this.modelId = available[0].id
+        void aiModelIdStorage.setValue(this.modelId)
+      }
     }
   }
 
@@ -231,7 +236,7 @@ class AiService {
     if (this.provider === "webllm") {
       return webLlmProvider
     }
-    return openAiCompatibleProvider
+    return externalAiProvider
   }
 }
 

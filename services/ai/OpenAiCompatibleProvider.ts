@@ -21,7 +21,7 @@ export class OpenAiCompatibleProvider implements AiProviderInterface {
   private config: OpenAiCompatibleConfig = {
     baseUrl: "http://localhost:11434/v1",
     apiKey: "",
-    modelName: ""
+    modelName: "gpt-4o-mini"
   }
   private customModels: CustomAiModel[] = []
 
